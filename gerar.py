@@ -1,37 +1,58 @@
 #!/usr/bin/env python3
 """Gerador do tema de ícones.
 
-    python3 gerar.py                 gera o tema, atualiza o cache e cria preview.html
-    python3 gerar.py --sem-cache     não roda gtk-update-icon-cache
-    python3 gerar.py --folha X.png   também salva uma folha de contato em PNG
+    python3 gerar.py                  gera o tema, atualiza o cache e cria preview.html
+    python3 gerar.py --destino DIR    gera noutra pasta (padrão: ~/.local/share/icons/<NOME>)
+    python3 gerar.py --sem-cache      não roda gtk-update-icon-cache
+    python3 gerar.py --folha X.png    também salva uma folha de contato em PNG
 
-Apps com glifo desenhado à mão estão em glifos.py. Qualquer outro app visível
-(inclusive os instalados no futuro) ganha um tile automático no mesmo padrão:
-o ícone symbolic do próprio app tingido com uma cor da paleta ou, se ele não
-tiver symbolic, um monograma com a inicial do nome.
+De onde vem cada ícone está em glifos.py (original do app, Simple Icons ou
+desenho próprio). Qualquer outro app visível, inclusive os instalados no
+futuro, entra no mesmo padrão usando o ícone original do próprio app.
 
 Não aplica o tema. Para aplicar:
     gsettings set org.gnome.desktop.interface icon-theme '<NOME_DO_TEMA>'
+
+Requer: Python 3, Pillow (python3-pillow), PyGObject com Rsvg e pycairo.
 """
 import base64
 import html
+import io
+import os
 import re
 import shutil
 import subprocess
 import sys
-import xml.etree.ElementTree as ET
-import zlib
 from pathlib import Path
+
+import cairo
+import gi
+from PIL import Image, ImageDraw
+
+gi.require_version("Rsvg", "2.0")
+from gi.repository import Rsvg  # noqa: E402
 
 NOME_DO_TEMA = "Brisa"
 
+# Logo: lado do quadrado onde o conteúdo do logo é encaixado (~62% do tile
+# de 112px) e tamanho máximo dos PNGs embutidos.
+LADO_LOGO = 70
+MAX_PNG = 256
+
 AQUI = Path(__file__).resolve().parent
 HOME = Path.home()
-DESTINO = HOME / ".local/share/icons" / NOME_DO_TEMA
-PASTA_SCALABLE = DESTINO / "scalable"
-CONTEXTOS = {"apps": "Applications", "places": "Places", "devices": "Devices"}
 TEMPLATE = AQUI / "tile.svg"
 PREVIEW = AQUI / "preview.html"
+SIMPLE_ICONS_DIR = AQUI / "fontes/simple-icons"
+CONTEXTOS = {"apps": "Applications", "places": "Places", "devices": "Devices"}
+
+
+def _arg(nome, padrao=None):
+    return sys.argv[sys.argv.index(nome) + 1] if nome in sys.argv else padrao
+
+
+DESTINO = Path(_arg("--destino", HOME / ".local/share/icons" / NOME_DO_TEMA)).expanduser()
+PASTA_SCALABLE = DESTINO / "scalable"
 
 # Ordem de prioridade igual à do XDG: usuário antes do sistema.
 PASTAS_DESKTOP = [
@@ -40,19 +61,17 @@ PASTAS_DESKTOP = [
     Path("/var/lib/flatpak/exports/share/applications"),
     Path("/usr/share/applications"),
 ]
-
 PASTAS_ICONES = [
     HOME / ".local/share/icons",
     HOME / ".local/share/flatpak/exports/share/icons",
     Path("/var/lib/flatpak/exports/share/icons"),
     Path("/usr/share/icons"),
 ]
-
-ET.register_namespace("", "http://www.w3.org/2000/svg")
-ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
+PIXMAPS = Path("/usr/share/pixmaps")
+GENERICO = Path("/usr/share/icons/Adwaita/scalable/mimetypes/application-x-executable.svg")
 
 sys.path.insert(0, str(AQUI))
-from glifos import AMBAR, APPS, BRANCO, CORAL, GLIFOS, ICONES_FIXOS, MENTA  # noqa: E402
+from glifos import APPS, DESENHOS, ICONES_FIXOS, SIMPLE_ICONS  # noqa: E402
 
 SECOES = ["Dock", "Grade", "Sistema", "Utilitários", "Escritório", "Outros apps",
           "Automáticos", "Lugares", "Dispositivos"]
@@ -112,10 +131,8 @@ def apps_visiveis():
         if not pasta.is_dir():
             continue
         for arq in sorted(pasta.glob("*.desktop")):
-            if arq.name in vistos:
-                continue
-            k = ler_desktop(arq)
-            vistos[arq.name] = k
+            if arq.name not in vistos:
+                vistos[arq.name] = ler_desktop(arq)
     return {
         nome: k for nome, k in vistos.items()
         if k.get("NoDisplay", "").lower() != "true"
@@ -144,91 +161,166 @@ def corrigir_icones_absolutos():
     return corrigidos
 
 
-# ── Geração ───────────────────────────────────────────────────────────────
-def montar(template, cor, corpo):
-    corpo = "\n".join("    " + parte for parte in corpo.replace("><", ">\n<").splitlines())
-    return template.replace("{{COR}}", cor).replace("{{GLIFO}}", corpo)
-
-
-def montar_svg(template, glifo):
-    return montar(template, *GLIFOS[glifo])
-
-
-def cor_automatica(chave):
-    return [CORAL, AMBAR, MENTA, BRANCO][zlib.crc32(chave.encode()) % 4]
-
-
-def achar_symbolic(nome):
+def achar_original(nome):
+    """O melhor ícone instalado do app: o SVG, senão o maior PNG."""
+    candidatos = []
     for base in PASTAS_ICONES:
-        for sub in ("hicolor/symbolic/apps", "hicolor/scalable/apps"):
-            p = base / sub / f"{nome}-symbolic.svg"
-            if p.is_file():
-                return p
-    return None
+        hicolor = base / "hicolor"
+        if not hicolor.is_dir():
+            continue
+        for tam in hicolor.iterdir():
+            if tam.name.startswith("symbolic"):
+                continue
+            for ext in ("svg", "png"):
+                p = tam / "apps" / f"{nome}.{ext}"
+                if p.is_file():
+                    candidatos.append(p)
+    for ext in ("svg", "png"):
+        p = PIXMAPS / f"{nome}.{ext}"
+        if p.is_file():
+            candidatos.append(p)
+
+    def peso(p):
+        if p.suffix == ".svg":
+            return 10**9
+        try:
+            with Image.open(p) as im:
+                return im.size[0] * im.size[1]
+        except OSError:
+            return 0
+
+    return max(candidatos, key=peso) if candidatos else None
 
 
-SVG_NS = "http://www.w3.org/2000/svg"
-XLINK_NS = "http://www.w3.org/1999/xlink"
+# ── Logos de marca ────────────────────────────────────────────────────────
+def renderizar_svg(dados, lado=512):
+    sup = cairo.ImageSurface(cairo.FORMAT_ARGB32, lado, lado)
+    vp = Rsvg.Rectangle()
+    vp.x = vp.y = 0
+    vp.width = vp.height = lado
+    Rsvg.Handle.new_from_data(dados).render_document(cairo.Context(sup), vp)
+    sup.flush()
+    return Image.frombuffer("RGBA", (lado, lado), bytes(sup.get_data()), "raw", "BGRa",
+                            sup.get_stride(), 1)
 
 
-def glifo_symbolic(arq, cor):
-    """Embute o symbolic do app no quadro do glifo (64px, centrado) e o tinge
-    com a cor da paleta preservando só a forma (canal alfa)."""
-    try:
-        raiz = ET.parse(arq).getroot()
-    except ET.ParseError:
-        return None
-    viewbox = raiz.get("viewBox") or f"0 0 {raiz.get('width', '16').rstrip('px')} {raiz.get('height', '16').rstrip('px')}"
-
-    # Remove tudo que não é SVG (metadados e extras do Inkscape) e prefixa ids
-    # para não colidirem com os do template.
-    def limpar(el):
-        for filho in list(el):
-            if not str(filho.tag).startswith("{%s}" % SVG_NS) or filho.tag.endswith("}metadata"):
-                el.remove(filho)
-            else:
-                limpar(filho)
-        for k in list(el.attrib):
-            if k.startswith("{") and not k.startswith("{%s}" % XLINK_NS):
-                del el.attrib[k]
-            elif k == "id":
-                el.attrib[k] = "sym-" + el.attrib[k]
-            elif "url(#" in el.attrib[k]:
-                el.attrib[k] = el.attrib[k].replace("url(#", "url(#sym-")
-            elif k in ("href", "{%s}href" % XLINK_NS) and el.attrib[k].startswith("#"):
-                el.attrib[k] = "#sym-" + el.attrib[k][1:]
-        if el.get("style") and "url(#" in el.get("style"):
-            el.set("style", el.get("style").replace("url(#", "url(#sym-"))
-
-    limpar(raiz)
-    corpo = "".join(ET.tostring(filho, encoding="unicode") for filho in raiz)
-    return (
-        '<defs><filter id="tingir" x="0" y="0" width="1" height="1" '
-        'color-interpolation-filters="sRGB">'
-        f'<feFlood flood-color="{cor}"/><feComposite in2="SourceAlpha" operator="in"/>'
-        "</filter></defs>"
-        '<g filter="url(#tingir)" fill="#000" stroke="none">'
-        f'<svg x="32" y="32" width="64" height="64" viewBox="{viewbox}" overflow="visible">'
-        f"{corpo}</svg></g>"
-    )
+def caixa(img):
+    """Retângulo do conteúdo visível (ignora a margem transparente)."""
+    return img.getchannel("A").point(lambda a: 255 if a > 12 else 0).getbbox()
 
 
-def glifo_monograma(nome_do_app):
-    letra = next((c for c in nome_do_app if c.isalnum()), "?").upper()
-    return (f'<text x="64" y="87" text-anchor="middle" font-family="Cantarell, Inter, sans-serif" '
-            f'font-size="66" font-weight="700" fill="currentColor" stroke="none">'
-            f"{html.escape(letra)}</text>")
+def remover_placa(img, tolerancia=110):
+    """Apaga a placa de fundo de um PNG: preenche a partir das bordas da placa
+    tudo que tem a cor dela, e depois apaga a sombra e a franja translúcidas
+    que ficam ligadas ao lado de fora."""
+    img = img.copy()
+    if max(img.size) > 512:
+        img.thumbnail((512, 512), Image.LANCZOS)
+    w, h = img.size
+    px = img.load()
+    sementes = []
+    for x, y, dx, dy in ((w // 2, 0, 0, 1), (w // 2, h - 1, 0, -1), (0, h // 2, 1, 0), (w - 1, h // 2, -1, 0)):
+        while 0 <= x < w and 0 <= y < h and px[x, y][3] < 230:
+            x, y = x + dx, y + dy
+        if 0 <= x < w and 0 <= y < h:
+            sementes.append((x + dx * 3, y + dy * 3))
+    if not sementes:
+        return img
+    cor_placa = px[sementes[0]]
+    for s in sementes:
+        if px[s][3] and sum(abs(a - b) for a, b in zip(px[s][:3], cor_placa[:3])) < tolerancia:
+            ImageDraw.floodfill(img, s, (0, 0, 0, 0), thresh=tolerancia)
+    # Sombra e franja: tudo translúcido ou da cor da placa ligado às bordas.
+    def descartavel(p):
+        r, g, b, a = p
+        return a < 200 or (abs(r - cor_placa[0]) + abs(g - cor_placa[1])
+                           + abs(b - cor_placa[2]) < tolerancia * 1.5)
+
+    pilha = [(x, y) for x in range(w) for y in (0, h - 1)] + [(x, y) for y in range(h) for x in (0, w - 1)]
+    visto = set()
+    while pilha:
+        x, y = pilha.pop()
+        if (x, y) in visto or not (0 <= x < w and 0 <= y < h) or not descartavel(px[x, y]):
+            continue
+        visto.add((x, y))
+        px[x, y] = (0, 0, 0, 0)
+        pilha += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+    return img
 
 
-def glifo_automatico(icone, nome_do_app):
-    """Devolve (cor, corpo, origem) para um app sem glifo desenhado."""
-    cor = cor_automatica(icone)
-    sym = achar_symbolic(icone)
-    if sym:
-        corpo = glifo_symbolic(sym, cor)
-        if corpo:
-            return cor, corpo, "symbolic"
-    return cor, glifo_monograma(nome_do_app), "monograma"
+def imagem_no_tile(href, bbox, lado):
+    """Posiciona uma imagem (lado x lado) para que o conteúdo dentro de bbox
+    fique centrado num quadrado de LADO_LOGO."""
+    x0, y0, x1, y1 = bbox
+    w, h = x1 - x0, y1 - y0
+    s = LADO_LOGO / max(w, h)
+    x = 64 - (x0 + w / 2) * s
+    y = 64 - (y0 + h / 2) * s
+    t = lado * s
+    return (f'<image x="{x:.2f}" y="{y:.2f}" width="{t:.2f}" height="{t:.2f}" '
+            f'xlink:href="{href}" href="{href}"/>')
+
+
+def logo_de_svg(dados):
+    bbox = caixa(renderizar_svg(dados))
+    href = "data:image/svg+xml;base64," + base64.b64encode(dados).decode()
+    return imagem_no_tile(href, bbox, 512)
+
+
+def logo_de_png(img):
+    bbox = caixa(img)
+    img = img.crop(bbox)
+    img.thumbnail((MAX_PNG, MAX_PNG), Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, "PNG", optimize=True)
+    href = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+    lado = max(img.size)
+    # Recentra a imagem recortada num quadrado virtual de lado x lado.
+    dx, dy = (lado - img.size[0]) / 2, (lado - img.size[1]) / 2
+    s = LADO_LOGO / lado
+    return (f'<image x="{64 - LADO_LOGO / 2 + dx * s:.2f}" y="{64 - LADO_LOGO / 2 + dy * s:.2f}" '
+            f'width="{img.size[0] * s:.2f}" height="{img.size[1] * s:.2f}" '
+            f'xlink:href="{href}" href="{href}"/>')
+
+
+def logo_original(arq, sem_fundo=False):
+    if arq.suffix == ".svg" and not sem_fundo:
+        return logo_de_svg(arq.read_bytes())
+    img = renderizar_svg(arq.read_bytes()) if arq.suffix == ".svg" else Image.open(arq).convert("RGBA")
+    if sem_fundo:
+        img = remover_placa(img)
+    return logo_de_png(img)
+
+
+def logo_simple_icons(slug):
+    cor, _ = SIMPLE_ICONS[slug]
+    texto = (SIMPLE_ICONS_DIR / f"{slug}.svg").read_text()
+    d = re.search(r'<path d="([^"]+)"', texto).group(1)
+    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">'
+           f'<path fill="{cor}" d="{d}"/></svg>')
+    return logo_de_svg(svg.encode())
+
+
+def montar_glifo(fonte, nome_icone):
+    """Devolve (corpo do glifo, descrição da fonte)."""
+    tipo, _, arg = fonte.partition(":")
+    if tipo == "desenho":
+        return DESENHOS[arg], "desenho próprio"
+    if tipo == "simple":
+        _, licenca = SIMPLE_ICONS[arg]
+        return logo_simple_icons(arg), f"Simple Icons: {arg} ({licenca})"
+    arq = achar_original(nome_icone)
+    if not arq:
+        return None, f"original não encontrado para {nome_icone}"
+    sem_fundo = tipo == "original-sem-fundo"
+    descricao = "original do app" + (", placa de fundo removida" if sem_fundo else "")
+    return logo_original(arq, sem_fundo), f"{descricao}: {arq}"
+
+
+# ── Geração ───────────────────────────────────────────────────────────────
+def montar(template, corpo):
+    corpo = "\n".join("    " + parte for parte in corpo.replace("><", ">\n<").splitlines())
+    return template.replace("{{GLIFO}}", corpo)
 
 
 def escrever_index():
@@ -238,19 +330,22 @@ def escrever_index():
         for c, ctx in CONTEXTOS.items())
     (DESTINO / "index.theme").write_text(
         f"[Icon Theme]\nName={NOME_DO_TEMA}\n"
-        "Comment=Tiles escuros de vidro com glifos simples\n"
+        "Comment=Tiles escuros de vidro com os logos coloridos dos apps\n"
         "Inherits=Adwaita,hicolor\nExample=org.gnome.Nautilus\n"
         f"Directories={','.join(dirs)}\n" + secoes)
 
 
 def gerar():
     template = TEMPLATE.read_text()
-    faltando = [g for _, _, g, _, _ in APPS + ICONES_FIXOS if g not in GLIFOS]
+    faltando = [f for _, _, f, _, _ in APPS + ICONES_FIXOS
+                if f.startswith("desenho:") and f[8:] not in DESENHOS
+                or f.startswith("simple:") and f[7:] not in SIMPLE_ICONS]
     if faltando:
-        sys.exit(f"Glifos não definidos em glifos.py: {', '.join(faltando)}")
+        sys.exit(f"Fontes não definidas em glifos.py: {', '.join(faltando)}")
 
     # Monta tudo numa pasta nova e troca no fim, para o GNOME nunca ver o tema
     # pela metade (o serviço pode rodar com a sessão aberta).
+    DESTINO.mkdir(parents=True, exist_ok=True)
     novo = DESTINO / ".scalable-novo"
     if novo.exists():
         shutil.rmtree(novo)
@@ -259,7 +354,20 @@ def gerar():
 
     itens, problemas, escritos = [], [], {}
     desktops_cobertos = set()
-    for rotulo, secoes, glifo, origens, extras in APPS:
+
+    def registrar(rotulo, secoes, fonte, nomes, contexto):
+        corpo, descricao = montar_glifo(fonte, nomes[0])
+        if corpo is None:
+            problemas.append((rotulo, fonte, nomes[0], descricao, None))
+            return
+        svg = montar(template, corpo)
+        for nome in nomes:
+            (novo / contexto / f"{nome}.svg").write_text(svg)
+            escritos[nome] = rotulo
+        itens.append({"rotulo": rotulo, "secoes": secoes, "fonte": descricao,
+                      "nomes": nomes, "arquivo": f"scalable/{contexto}/{nomes[0]}.svg", "svg": svg})
+
+    for rotulo, secoes, fonte, origens, extras in APPS:
         nomes = []
         for origem in origens:
             desktops_cobertos.add(origem)
@@ -269,22 +377,13 @@ def gerar():
             if nome and nome not in nomes:
                 nomes.append(nome)
         nomes += [e for e in extras if e not in nomes]
-        svg = montar_svg(template, glifo)
-        for nome in nomes:
-            (novo / "apps" / f"{nome}.svg").write_text(svg)
-            escritos[nome] = rotulo
-        itens.append({"rotulo": rotulo, "secoes": secoes, "glifo": glifo,
-                      "nomes": nomes, "svg": svg})
+        if nomes:
+            registrar(rotulo, secoes, fonte, nomes, "apps")
 
-    for rotulo, secao, glifo, nomes, contexto in ICONES_FIXOS:
-        svg = montar_svg(template, glifo)
-        for nome in nomes:
-            (novo / contexto / f"{nome}.svg").write_text(svg)
-            escritos[nome] = rotulo
-        itens.append({"rotulo": rotulo, "secoes": [secao], "glifo": glifo,
-                      "nomes": nomes, "svg": svg})
+    for rotulo, secao, fonte, nomes, contexto in ICONES_FIXOS:
+        registrar(rotulo, [secao], fonte, nomes, contexto)
 
-    # Qualquer outro app visível: tile automático no padrão do tema.
+    # Qualquer outro app visível: o logo original do próprio app no tile.
     for desktop_id, chaves in sorted(apps_visiveis().items()):
         icone = chaves.get("Icon", "")
         if desktop_id in desktops_cobertos or not icone or icone in escritos:
@@ -294,12 +393,16 @@ def gerar():
             problemas.append((rotulo, desktop_id, str(achar_desktop(desktop_id)),
                               f"Icon= é caminho absoluto ({icone})", None))
             continue
-        cor, corpo, origem = glifo_automatico(icone, rotulo)
-        svg = montar(template, cor, corpo)
+        arq = achar_original(icone) or (GENERICO if GENERICO.is_file() else None)
+        if not arq:
+            problemas.append((rotulo, desktop_id, icone, "nenhum ícone original encontrado", None))
+            continue
+        svg = montar(template, logo_original(arq))
         (novo / "apps" / f"{icone}.svg").write_text(svg)
         escritos[icone] = rotulo
-        itens.append({"rotulo": rotulo, "secoes": ["Automáticos"], "glifo": origem,
-                      "nomes": [icone], "svg": svg})
+        itens.append({"rotulo": rotulo, "secoes": ["Automáticos"],
+                      "fonte": f"original do app (automático): {arq}",
+                      "nomes": [icone], "arquivo": f"scalable/apps/{icone}.svg", "svg": svg})
 
     if PASTA_SCALABLE.exists():
         velho = DESTINO / ".scalable-velho"
@@ -319,40 +422,53 @@ def atualizar_cache():
 
 
 # ── Preview ───────────────────────────────────────────────────────────────
-def img(svg, alt):
-    b64 = base64.b64encode(svg.encode()).decode()
-    return f'<img src="data:image/svg+xml;base64,{b64}" alt="{html.escape(alt)}">'
+def tipo_fonte(descricao):
+    if descricao.startswith("desenho"):
+        return "desenho"
+    if descricao.startswith("Simple"):
+        return "simple"
+    return "original"
 
 
 def escrever_preview(itens, problemas):
+    def src(it):
+        return html.escape(os.path.relpath(DESTINO / it["arquivo"], PREVIEW.parent))
+
     def cartao(it):
-        nomes = ", ".join(it["nomes"]) or "—"
-        return (f'<figure title="{html.escape(nomes)}">{img(it["svg"], it["rotulo"])}'
-                f'<figcaption>{html.escape(it["rotulo"])}<code>{html.escape(nomes)}</code>'
-                f'</figcaption></figure>')
+        nomes = ", ".join(it["nomes"])
+        etiqueta = {"desenho": "desenho próprio", "simple": "Simple Icons",
+                    "original": "original do app"}[tipo_fonte(it["fonte"])]
+        return (f'<figure title="{html.escape(nomes)}&#10;{html.escape(it["fonte"])}">'
+                f'<img src="{src(it)}" alt="{html.escape(it["rotulo"])}" loading="lazy">'
+                f'<figcaption>{html.escape(it["rotulo"])}'
+                f'<span class="fonte {tipo_fonte(it["fonte"])}">{etiqueta}</span></figcaption></figure>')
+
+    def paineis(lista):
+        grade = "".join(cartao(it) for it in lista)
+        return (f'<div class="paineis"><div class="painel escuro"><div class="grade">{grade}</div></div>'
+                f'<div class="painel claro"><div class="grade">{grade}</div></div></div>')
 
     blocos = []
-    dock = [it for it in itens if "Dock" in it["secoes"]]
-    blocos.append(
-        '<section><h2>Dock</h2><div class="dock">'
-        + "".join(f'<span title="{html.escape(it["rotulo"])}">{img(it["svg"], it["rotulo"])}</span>' for it in dock)
-        + '</div><div class="grade">' + "".join(cartao(it) for it in dock) + "</div></section>")
-    for secao in SECOES[1:]:
+    for secao in SECOES:
         lista = [it for it in itens if secao in it["secoes"]]
         if not lista:
             continue
         titulo = f"Pasta {secao}" if secao in PASTAS_DA_GRADE else secao
-        blocos.append(f'<section><h2>{titulo} <small>{len(lista)}</small></h2>'
-                      f'<div class="grade">' + "".join(cartao(it) for it in lista) + "</div></section>")
+        blocos.append(f'<section><h2>{titulo} <small>{len(lista)}</small></h2>{paineis(lista)}</section>')
 
+    linhas = "".join(
+        f'<tr><td>{html.escape(it["rotulo"])}</td><td><code>{html.escape(", ".join(it["nomes"]))}</code></td>'
+        f'<td><span class="fonte {tipo_fonte(it["fonte"])}">{html.escape(it["fonte"])}</span></td></tr>'
+        for it in itens)
+    blocos.append('<section><h2>De onde veio cada ícone</h2><div class="tabela"><table>'
+                  '<thead><tr><th>App / ícone</th><th>Nome</th><th>Fonte</th></tr></thead>'
+                  f'<tbody>{linhas}</tbody></table></div></section>')
     if problemas:
-        linhas = "".join(
-            f"<li><b>{html.escape(r)}</b> — {html.escape(p)}<br><code>{html.escape(onde)}</code>"
-            + (f"<br>SVG gerado como <code>{html.escape(n)}.svg</code>, mas só vale se o Icon= usar esse nome."
-               if n else "") + "</li>"
-            for r, _, onde, p, n in problemas)
-        blocos.append(f'<section><h2>Sem mapeamento</h2><ul class="lista">{linhas}</ul></section>')
+        lis = "".join(f"<li><b>{html.escape(r)}</b> — {html.escape(p)} <code>{html.escape(str(onde))}</code></li>"
+                      for r, _, onde, p, _ in problemas)
+        blocos.append(f'<section><h2>Sem mapeamento</h2><ul class="lista">{lis}</ul></section>')
 
+    contagem = {t: sum(1 for it in itens if tipo_fonte(it["fonte"]) == t) for t in ("original", "simple", "desenho")}
     PREVIEW.write_text(f"""<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -360,78 +476,63 @@ def escrever_preview(itens, problemas):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{NOME_DO_TEMA} preview</title>
 <style>
-  :root {{ --tam: 96px; --fundo: #0e0e10; --texto: #e8e8ec; --sutil: #8a8a93; --painel: rgba(255,255,255,.04); }}
-  body.claro {{ --fundo: #ececf0; --texto: #1b1b1f; --sutil: #66666f; --painel: rgba(0,0,0,.04); }}
-  body.parede {{ --fundo: #1a2a3a; }}
+  :root {{ --tam: 80px; --texto: #e8e8ec; --sutil: #8a8a93; }}
   * {{ box-sizing: border-box; }}
-  body {{ margin: 0; padding: 24px 16px 64px; background: var(--fundo); color: var(--texto);
-         font: 14px/1.4 "Cantarell", "Inter", system-ui, sans-serif; transition: background .2s; }}
-  body.parede {{ background: radial-gradient(120% 90% at 20% 10%, #4b6a8a 0%, #24324a 45%, #120f1c 100%) fixed; }}
-  header {{ max-width: 1100px; margin: 0 auto 24px; display: flex; flex-wrap: wrap; gap: 16px;
-           align-items: center; justify-content: space-between; }}
-  h1 {{ margin: 0; font-size: 22px; font-weight: 700; }}
-  .controles {{ display: flex; flex-wrap: wrap; gap: 12px; align-items: center; color: var(--sutil); }}
-  .controles button {{ background: var(--painel); color: var(--texto); border: 1px solid rgba(127,127,127,.3);
-                      border-radius: 8px; padding: 6px 12px; cursor: pointer; font: inherit; }}
-  .controles button[aria-pressed=true] {{ border-color: #4FC7A2; }}
-  section {{ max-width: 1100px; margin: 0 auto 32px; }}
-  h2 {{ font-size: 15px; font-weight: 600; margin: 0 0 12px; }}
-  h2 small {{ color: var(--sutil); font-weight: 400; margin-left: 6px; }}
-  .dock {{ display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; padding: 8px 10px; margin: 0 auto 20px;
-           width: fit-content; max-width: 100%; border-radius: 24px; background: rgba(40,40,44,.55);
-           border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(20px); }}
-  .dock img {{ width: 56px; height: 56px; display: block; }}
-  .grade {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--tam) + 40px), 1fr)); gap: 18px 8px; }}
+  body {{ margin: 0; padding: 24px 16px 64px; background: #0b0b0d; color: var(--texto);
+         font: 14px/1.4 "Cantarell", "Inter", system-ui, sans-serif; }}
+  header, section {{ max-width: 1400px; margin: 0 auto 28px; }}
+  header {{ display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }}
+  h1 {{ margin: 0; font-size: 22px; }}
+  h1 small, h2 small {{ color: var(--sutil); font-weight: 400; font-size: 14px; margin-left: 6px; }}
+  h2 {{ font-size: 15px; font-weight: 600; margin: 0 0 10px; }}
+  label {{ color: var(--sutil); }}
+  .paineis {{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }}
+  @media (max-width: 900px) {{ .paineis {{ grid-template-columns: 1fr; }} }}
+  .painel {{ border-radius: 18px; padding: 16px 10px; }}
+  .painel.escuro {{ background: #000; color: #f2f2f5; }}
+  .painel.claro {{ background: #e9e9ee; color: #1b1b1f; }}
+  .painel.claro .fonte {{ opacity: .8; }}
+  .grade {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--tam) + 24px), 1fr)); gap: 14px 4px; }}
   figure {{ margin: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }}
   figure img {{ width: var(--tam); height: var(--tam); }}
-  figcaption {{ margin-top: 6px; font-size: 13px; }}
-  figcaption code {{ display: block; color: var(--sutil); font-size: 11px; word-break: break-all; }}
-  .lista {{ background: var(--painel); border-radius: 12px; padding: 14px 14px 14px 32px; margin: 0; }}
-  .lista li {{ margin: 4px 0; }}
-  .lista code {{ color: var(--sutil); font-size: 12px; word-break: break-all; }}
+  figcaption {{ margin-top: 4px; font-size: 12px; line-height: 1.25; }}
+  .fonte {{ display: block; font-size: 10px; margin-top: 2px; }}
+  .fonte.original {{ color: #4FC7A2; }} .fonte.simple {{ color: #F5B53F; }} .fonte.desenho {{ color: #F0685A; }}
+  .painel.claro .fonte.original {{ color: #1d7c60; }} .painel.claro .fonte.simple {{ color: #9a6400; }}
+  .painel.claro .fonte.desenho {{ color: #b2332d; }}
+  .tabela {{ overflow-x: auto; background: #151517; border-radius: 12px; }}
+  table {{ border-collapse: collapse; width: 100%; font-size: 13px; }}
+  th, td {{ text-align: left; padding: 6px 12px; border-bottom: 1px solid #26262a; vertical-align: top; }}
+  th {{ color: var(--sutil); font-weight: 600; }}
+  td code {{ color: var(--sutil); font-size: 12px; word-break: break-all; }}
+  td .fonte {{ font-size: 12px; word-break: break-all; }}
+  .lista {{ background: #151517; border-radius: 12px; padding: 14px 14px 14px 32px; margin: 0; }}
 </style>
 </head>
-<body class="escuro">
+<body>
 <header>
-  <h1>{NOME_DO_TEMA}</h1>
-  <div class="controles">
-    <label>Tamanho <input id="tam" type="range" min="32" max="160" step="16" value="96"> <span id="tamv">96</span>px</label>
-    <button data-fundo="escuro" aria-pressed="true">Escuro</button>
-    <button data-fundo="claro" aria-pressed="false">Claro</button>
-    <button data-fundo="parede" aria-pressed="false">Papel de parede</button>
-  </div>
+  <h1>{NOME_DO_TEMA} <small>{len(itens)} ícones · {contagem["original"]} originais ·
+    {contagem["simple"]} Simple Icons · {contagem["desenho"]} desenhos próprios</small></h1>
+  <label>Tamanho <input id="tam" type="range" min="32" max="128" step="8" value="80"> <span id="tamv">80</span>px</label>
 </header>
 {''.join(blocos)}
 <script>
   const tam = document.getElementById('tam'), tamv = document.getElementById('tamv');
   tam.addEventListener('input', () => {{
     document.documentElement.style.setProperty('--tam', tam.value + 'px'); tamv.textContent = tam.value; }});
-  document.querySelectorAll('[data-fundo]').forEach(b => b.addEventListener('click', () => {{
-    document.body.className = b.dataset.fundo;
-    document.querySelectorAll('[data-fundo]').forEach(x => x.setAttribute('aria-pressed', x === b));
-  }}));
 </script>
 </body>
 </html>
 """)
 
 
-# ── Main ──────────────────────────────────────────────────────────────────
 def salvar_folha(itens, destino, tam=96, colunas=10):
-    """Folha de contato em PNG (precisa de pycairo e librsvg via gi)."""
-    import cairo
-    import gi
-    gi.require_version("Rsvg", "2.0")
-    from gi.repository import Rsvg
-
+    """Folha de contato em PNG."""
     pad = 14
     linhas = (len(itens) + colunas - 1) // colunas
     sup = cairo.ImageSurface(cairo.FORMAT_ARGB32, colunas * (tam + pad) + pad, linhas * (tam + pad) + pad)
     ctx = cairo.Context(sup)
-    grad = cairo.LinearGradient(0, 0, sup.get_width(), sup.get_height())
-    grad.add_color_stop_rgb(0, 0.29, 0.41, 0.54)
-    grad.add_color_stop_rgb(1, 0.07, 0.06, 0.11)
-    ctx.set_source(grad)
+    ctx.set_source_rgb(0, 0, 0)
     ctx.paint()
     for i, it in enumerate(itens):
         vp = Rsvg.Rectangle()
@@ -442,6 +543,7 @@ def salvar_folha(itens, destino, tam=96, colunas=10):
     sup.write_to_png(str(destino))
 
 
+# ── Main ──────────────────────────────────────────────────────────────────
 def main():
     corrigidos = corrigir_icones_absolutos()
     itens, problemas, escritos = gerar()
@@ -449,17 +551,15 @@ def main():
         atualizar_cache()
     escrever_preview(itens, problemas)
     if "--folha" in sys.argv:
-        salvar_folha(itens, sys.argv[sys.argv.index("--folha") + 1])
+        salvar_folha(itens, _arg("--folha"))
 
-    automaticos = [it for it in itens if "Automáticos" in it["secoes"]]
     print(f"{len(escritos)} SVGs em {PASTA_SCALABLE}")
     print(f"Preview: {PREVIEW}")
     for nome in corrigidos:
         print(f"Icon= absoluto trocado por nome em {nome}")
-    if automaticos:
-        print("\nTiles automáticos:")
-        for it in automaticos:
-            print(f"  - {it['rotulo']} ({it['nomes'][0]}, {it['glifo']})")
+    print("\nFonte de cada ícone:")
+    for it in itens:
+        print(f"  - {it['rotulo']}: {it['fonte']}")
     if problemas:
         print("\nSem mapeamento:")
         for rotulo, origem, onde, problema, _ in problemas:
