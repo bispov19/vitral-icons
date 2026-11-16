@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # install.sh — instala as partes do tema Brisa (sem aplicar nada).
 #
-#   scripts/install.sh [--fase icones|gtk|todas] [--dry-run]
+#   scripts/install.sh [--fase icones|gtk|shell|todas] [--dry-run]
 #
 #   icones  gera os ícones em ~/.local/share/icons/<nome>
 #   gtk     gera o tema em ~/.local/share/themes/<nome> (GTK 3 e GTK 4) e copia o
 #           CSS do libadwaita para ~/.config/gtk-4.0/gtk.css e o do GTK 3 para
 #           ~/.config/gtk-3.0/gtk.css (é o que os apps Flatpak conseguem ler),
 #           guardando backup do que já existir em ~/.config/brisa/backup/
+#
+#   shell   gera o tema do GNOME Shell em ~/.local/share/themes/<nome>/gnome-shell
+#           (carregado pela extensão oficial User Themes)
 #
 # Idempotente: rodar de novo só atualiza os arquivos. Com --dry-run, só mostra
 # o que faria. Para aplicar (gsettings), veja scripts/apply.sh.
@@ -64,6 +67,12 @@ if [ "$FASE" = gtk ] || [ "$FASE" = todas ]; then
     instalar_css_usuario "$TEMA/gtk-3.0/gtk.css" "${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0/gtk.css"
 fi
 
+if [ "$FASE" = shell ] || [ "$FASE" = todas ]; then
+    TEMA="${XDG_DATA_HOME:-$HOME/.local/share}/themes/$NOME"
+    echo "==> Tema do GNOME Shell em $TEMA/gnome-shell"
+    rodar python3 "$RAIZ/shell/gerar.py" --destino "$TEMA"
+fi
+
 if [ "$DRY" = 1 ]; then echo; echo "Simulação: nada foi instalado."; else echo; echo "Instalado."; fi
 cat <<EOF
 Para aplicar, rode você mesmo:
@@ -71,6 +80,11 @@ Para aplicar, rode você mesmo:
   gsettings set org.gnome.desktop.interface gtk-theme '$NOME'
   gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
   gsettings set org.gnome.desktop.wm.preferences button-layout 'close,minimize,maximize:'
+Tema do GNOME Shell (extensão oficial User Themes; no Fedora o pacote é
+gnome-shell-extension-user-theme):
+  sudo dnf install gnome-shell-extension-user-theme
+  gnome-extensions enable user-theme@gnome-shell-extensions.gcampax.github.com
+  gsettings set org.gnome.shell.extensions.user-theme name '$NOME'
 Para os apps Flatpak lerem o CSS do tema:
   flatpak override --user --filesystem=xdg-config/gtk-4.0:ro --filesystem=xdg-config/gtk-3.0:ro
 EOF

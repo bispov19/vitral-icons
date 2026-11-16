@@ -100,3 +100,17 @@ espaco = 8
 borda_mais_escura = 0.22      # quanto a borda de 1px escurece a cor do botão
 glifo = "rgba(0, 0, 0, 0.6)"  # cor do ✕ − ⤢, visível só com o mouse sobre o grupo
 sem_foco = "#48484D"          # círculos da janela sem foco
+
+# ── GNOME Shell (tema carregado pela extensão oficial User Themes) ───────
+[shell]
+# Destaque dos toggles, sliders e seleções (nome da paleta ou hex).
+accent = "menta"
+# Painel superior translúcido, estilo macOS.
+painel_cor = "#151517"
+painel_opacidade = 0.55
+# Vidro escuro dos menus, menu rápido, calendário, notificações, OSD e Alt+Tab.
+vidro_cor = "#1E1E21"
+vidro_opacidade = 0.86
+vidro_borda_opacidade = 0.12  # borda interna branca de 1px
+raio = 18                      # cantos dos menus e painéis flutuantes
+raio_itens = 12                # cantos dos itens dentro deles
