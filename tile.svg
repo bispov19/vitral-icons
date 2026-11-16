@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="128" viewBox="0 0 128 128">
+  <!--
+    Template do tile do tema. Tudo que define o "estilo" do ícone mora aqui.
+    O gerador só substitui dois marcadores:
+      {{COR}}   cor do glifo (branco ou uma cor da paleta)
+      {{GLIFO}} os elementos SVG do glifo, desenhados num quadro 128x128,
+                centrados em (64,64), ocupando ~ x/y 30..98
+    O glifo herda stroke="currentColor", largura 6, pontas e cantos redondos.
+
+    Geometria: tile de 112px (margem de 8px), squircle com raio 24.6 (22%)
+    e suavização de canto 0.6 (estilo iOS). Para cantos simples, troque o
+    <path id="forma"> por <rect id="forma" x="8" y="8" width="112" height="112" rx="25"/>.
+  -->
+  <defs>
+    <path id="forma" d="M80.64 8 c13.78 0 20.67 0 25.93 2.68 a24.6 24.6 0 0 1 10.75 10.75 c2.68 5.26 2.68 12.15 2.68 25.93 L120 80.64 c0 13.78 0 20.67 -2.68 25.93 a24.6 24.6 0 0 1 -10.75 10.75 c-5.26 2.68 -12.15 2.68 -25.93 2.68 L47.36 120 c-13.78 0 -20.67 0 -25.93 -2.68 a24.6 24.6 0 0 1 -10.75 -10.75 c-2.68 -5.26 -2.68 -12.15 -2.68 -25.93 L8 47.36 c0 -13.78 0 -20.67 2.68 -25.93 a24.6 24.6 0 0 1 10.75 -10.75 c5.26 -2.68 12.15 -2.68 25.93 -2.68 Z"/>
+
+    <clipPath id="recorte">
+      <use xlink:href="#forma" href="#forma"/>
+    </clipPath>
+
+    <!-- fundo grafite: gradiente vertical sutil -->
+    <linearGradient id="fundo" x1="0" y1="8" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2B2B2E"/>
+      <stop offset="1" stop-color="#151517"/>
+    </linearGradient>
+
+    <!-- reflexo largo e suave na metade de cima (vidro) -->
+    <linearGradient id="reflexo" x1="0" y1="8" x2="0" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- brilho fino só na borda de cima -->
+    <linearGradient id="brilho" x1="0" y1="8" x2="0" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="0.4" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- sombra interna leve -->
+    <filter id="desfoque" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+
+    <!-- sombra discreta sob o glifo, para dar profundidade -->
+    <filter id="sombra-glifo" x="-20%" y="-20%" width="140%" height="150%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dy="2" result="desl"/>
+      <feComponentTransfer in="desl" result="sombra">
+        <feFuncA type="linear" slope="0.45"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="sombra"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- tile -->
+  <use xlink:href="#forma" href="#forma" fill="url(#fundo)"/>
+
+  <g clip-path="url(#recorte)">
+    <!-- sombra interna -->
+    <use xlink:href="#forma" href="#forma" fill="none" stroke="#000000" stroke-opacity="0.45" stroke-width="8" filter="url(#desfoque)"/>
+    <!-- reflexo de vidro -->
+    <rect x="8" y="8" width="112" height="56" fill="url(#reflexo)"/>
+    <!-- borda interna de 1px (stroke 2 recortado = 1px por dentro) -->
+    <use xlink:href="#forma" href="#forma" fill="none" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="2"/>
+    <!-- brilho fino no topo -->
+    <use xlink:href="#forma" href="#forma" fill="none" stroke="url(#brilho)" stroke-width="2"/>
+  </g>
+
+  <!-- glifo -->
+  <g color="{{COR}}" fill="none" stroke="currentColor" stroke-width="6"
+     stroke-linecap="round" stroke-linejoin="round" filter="url(#sombra-glifo)">
+{{GLIFO}}
+  </g>
+</svg>

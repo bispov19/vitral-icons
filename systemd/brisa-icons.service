@@ -1,0 +1,12 @@
+[Unit]
+Description=Brisa: gerar ícones no padrão do tema
+
+[Service]
+Type=oneshot
+# Espera a instalação terminar: dnf e flatpak gravam vários arquivos em sequência.
+ExecStartPre=/usr/bin/sleep 8
+ExecStart=/usr/bin/python3 @GERADOR@
+
+[Install]
+# Também roda a cada login, para pegar apps instalados com a sessão fechada.
+WantedBy=default.target
