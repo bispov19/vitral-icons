@@ -93,9 +93,10 @@ popover = "#2C2C30"
 miniatura = "#303034"
 texto = "#F2F2F5"
 
-# Botões de fechar, minimizar e maximizar (círculos à esquerda).
+# Botões de fechar, minimizar e maximizar (círculos à esquerda), nas medidas
+# do macOS: 12px de diâmetro e 8px entre eles.
 [gtk.botoes_janela]
-tamanho = 14
+tamanho = 12
 espaco = 8
 borda_mais_escura = 0.22      # quanto a borda de 1px escurece a cor do botão
 glifo = "rgba(0, 0, 0, 0.6)"  # cor do ✕ − ⤢, visível só com o mouse sobre o grupo

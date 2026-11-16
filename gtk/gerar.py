@@ -104,8 +104,9 @@ def valores():
         "DIALOGO": sup["dialogo"], "POPOVER": sup["popover"], "MINIATURA": sup["miniatura"],
         "RAIO_JANELA": GTK["raio_janela"],
         "TAM": bj["tamanho"], "ESPACO": bj["espaco"], "MEIO_ESPACO": bj["espaco"] / 2,
-        "GLIFO": bj["glifo"], "GLIFO_TAM": round(bj["tamanho"] * 0.72),
-        "GLIFO_ESCALA": round(bj["tamanho"] * 0.72 / 16, 3),
+        # Círculo = glifo + 1px de respiro + 1px de borda de cada lado.
+        "GLIFO": bj["glifo"], "GLIFO_TAM": bj["tamanho"] - 4, "IMAGEM_RESPIRO": 1,
+        "GLIFO_ESCALA": round((bj["tamanho"] - 4) / 16, 3),
         "ESCURECER": "rgba(0, 0, 0, 0.18)",
         "SEM_FOCO": bj["sem_foco"], "SEM_FOCO_BORDA": misturar(bj["sem_foco"], "#000000", escurece),
         "FECHAR": PAL["coral"], "FECHAR_BORDA": misturar(PAL["coral"], "#000000", escurece),
