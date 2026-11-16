@@ -12,7 +12,9 @@
     Desenhos próprios pintam com fill/stroke="url(#<cor>)". Cores:
       branco prata grafite grafite-escuro
       ambar ambar-escuro coral coral-escuro menta menta-escuro
-    e "fundo", que é o próprio gradiente do tile (para partes vazadas).
+    "tinta" (glifo direto sobre o tile: claro na variante escura, grafite na
+    clara) e "fundo", que é o próprio gradiente do tile (para partes vazadas).
+    Tile, borda, branco e tinta mudam com a variante (escura/clara).
   -->
   <defs>
     <path id="forma" d="M120 64 L120 75.09 L119.99 78.63 L119.97 81.21 L119.95 83.30 L119.91 85.10 L119.88 86.69 L119.83 88.13 L119.78 89.45 L119.72 90.66 L119.66 91.80 L119.59 92.87 L119.51 93.88 L119.42 94.83 L119.33 95.74 L119.23 96.61 L119.12 97.44 L119.01 98.24 L118.89 99.01 L118.76 99.75 L118.62 100.46 L118.48 101.15 L118.33 101.81 L118.17 102.45 L118.01 103.08 L117.84 103.68 L117.66 104.26 L117.47 104.83 L117.28 105.38 L117.08 105.92 L116.87 106.44 L116.65 106.95 L116.43 107.44 L116.19 107.92 L115.95 108.38 L115.71 108.84 L115.45 109.28 L115.18 109.71 L114.91 110.12 L114.63 110.53 L114.34 110.93 L114.04 111.31 L113.73 111.69 L113.41 112.05 L113.09 112.41 L112.75 112.75 L112.41 113.09 L112.05 113.41 L111.69 113.73 L111.31 114.04 L110.93 114.34 L110.53 114.63 L110.12 114.91 L109.71 115.18 L109.28 115.45 L108.84 115.71 L108.38 115.95 L107.92 116.19 L107.44 116.43 L106.95 116.65 L106.44 116.87 L105.92 117.08 L105.38 117.28 L104.83 117.47 L104.26 117.66 L103.68 117.84 L103.08 118.01 L102.45 118.17 L101.81 118.33 L101.15 118.48 L100.46 118.62 L99.75 118.76 L99.01 118.89 L98.24 119.01 L97.44 119.12 L96.61 119.23 L95.74 119.33 L94.83 119.42 L93.88 119.51 L92.87 119.59 L91.80 119.66 L90.66 119.72 L89.45 119.78 L88.13 119.83 L86.69 119.88 L85.10 119.91 L83.30 119.95 L81.21 119.97 L78.63 119.99 L75.09 120 L64 120 L52.91 120 L49.37 119.99 L46.79 119.97 L44.70 119.95 L42.90 119.91 L41.31 119.88 L39.87 119.83 L38.55 119.78 L37.34 119.72 L36.20 119.66 L35.13 119.59 L34.12 119.51 L33.17 119.42 L32.26 119.33 L31.39 119.23 L30.56 119.12 L29.76 119.01 L28.99 118.89 L28.25 118.76 L27.54 118.62 L26.85 118.48 L26.19 118.33 L25.55 118.17 L24.92 118.01 L24.32 117.84 L23.74 117.66 L23.17 117.47 L22.62 117.28 L22.08 117.08 L21.56 116.87 L21.05 116.65 L20.56 116.43 L20.08 116.19 L19.62 115.95 L19.16 115.71 L18.72 115.45 L18.29 115.18 L17.88 114.91 L17.47 114.63 L17.07 114.34 L16.69 114.04 L16.31 113.73 L15.95 113.41 L15.59 113.09 L15.25 112.75 L14.91 112.41 L14.59 112.05 L14.27 111.69 L13.96 111.31 L13.66 110.93 L13.37 110.53 L13.09 110.12 L12.82 109.71 L12.55 109.28 L12.29 108.84 L12.05 108.38 L11.81 107.92 L11.57 107.44 L11.35 106.95 L11.13 106.44 L10.92 105.92 L10.72 105.38 L10.53 104.83 L10.34 104.26 L10.16 103.68 L9.99 103.08 L9.83 102.45 L9.67 101.81 L9.52 101.15 L9.38 100.46 L9.24 99.75 L9.11 99.01 L8.99 98.24 L8.88 97.44 L8.77 96.61 L8.67 95.74 L8.58 94.83 L8.49 93.88 L8.41 92.87 L8.34 91.80 L8.28 90.66 L8.22 89.45 L8.17 88.13 L8.12 86.69 L8.09 85.10 L8.05 83.30 L8.03 81.21 L8.01 78.63 L8 75.09 L8 64 L8 52.91 L8.01 49.37 L8.03 46.79 L8.05 44.70 L8.09 42.90 L8.12 41.31 L8.17 39.87 L8.22 38.55 L8.28 37.34 L8.34 36.20 L8.41 35.13 L8.49 34.12 L8.58 33.17 L8.67 32.26 L8.77 31.39 L8.88 30.56 L8.99 29.76 L9.11 28.99 L9.24 28.25 L9.38 27.54 L9.52 26.85 L9.67 26.19 L9.83 25.55 L9.99 24.92 L10.16 24.32 L10.34 23.74 L10.53 23.17 L10.72 22.62 L10.92 22.08 L11.13 21.56 L11.35 21.05 L11.57 20.56 L11.81 20.08 L12.05 19.62 L12.29 19.16 L12.55 18.72 L12.82 18.29 L13.09 17.88 L13.37 17.47 L13.66 17.07 L13.96 16.69 L14.27 16.31 L14.59 15.95 L14.91 15.59 L15.25 15.25 L15.59 14.91 L15.95 14.59 L16.31 14.27 L16.69 13.96 L17.07 13.66 L17.47 13.37 L17.88 13.09 L18.29 12.82 L18.72 12.55 L19.16 12.29 L19.62 12.05 L20.08 11.81 L20.56 11.57 L21.05 11.35 L21.56 11.13 L22.08 10.92 L22.62 10.72 L23.17 10.53 L23.74 10.34 L24.32 10.16 L24.92 9.99 L25.55 9.83 L26.19 9.67 L26.85 9.52 L27.54 9.38 L28.25 9.24 L28.99 9.11 L29.76 8.99 L30.56 8.88 L31.39 8.77 L32.26 8.67 L33.17 8.58 L34.12 8.49 L35.13 8.41 L36.20 8.34 L37.34 8.28 L38.55 8.22 L39.87 8.17 L41.31 8.12 L42.90 8.09 L44.70 8.05 L46.79 8.03 L49.37 8.01 L52.91 8 L64 8 L75.09 8 L78.63 8.01 L81.21 8.03 L83.30 8.05 L85.10 8.09 L86.69 8.12 L88.13 8.17 L89.45 8.22 L90.66 8.28 L91.80 8.34 L92.87 8.41 L93.88 8.49 L94.83 8.58 L95.74 8.67 L96.61 8.77 L97.44 8.88 L98.24 8.99 L99.01 9.11 L99.75 9.24 L100.46 9.38 L101.15 9.52 L101.81 9.67 L102.45 9.83 L103.08 9.99 L103.68 10.16 L104.26 10.34 L104.83 10.53 L105.38 10.72 L105.92 10.92 L106.44 11.13 L106.95 11.35 L107.44 11.57 L107.92 11.81 L108.38 12.05 L108.84 12.29 L109.28 12.55 L109.71 12.82 L110.12 13.09 L110.53 13.37 L110.93 13.66 L111.31 13.96 L111.69 14.27 L112.05 14.59 L112.41 14.91 L112.75 15.25 L113.09 15.59 L113.41 15.95 L113.73 16.31 L114.04 16.69 L114.34 17.07 L114.63 17.47 L114.91 17.88 L115.18 18.29 L115.45 18.72 L115.71 19.16 L115.95 19.62 L116.19 20.08 L116.43 20.56 L116.65 21.05 L116.87 21.56 L117.08 22.08 L117.28 22.62 L117.47 23.17 L117.66 23.74 L117.84 24.32 L118.01 24.92 L118.17 25.55 L118.33 26.19 L118.48 26.85 L118.62 27.54 L118.76 28.25 L118.89 28.99 L119.01 29.76 L119.12 30.56 L119.23 31.39 L119.33 32.26 L119.42 33.17 L119.51 34.12 L119.59 35.13 L119.66 36.20 L119.72 37.34 L119.78 38.55 L119.83 39.87 L119.88 41.31 L119.91 42.90 L119.95 44.70 L119.97 46.79 L119.99 49.37 L120 52.91 Z"/>
@@ -21,10 +23,10 @@
       <use xlink:href="#forma" href="#forma"/>
     </clipPath>
 
-    <!-- fundo grafite: gradiente vertical sutil -->
+    <!-- fundo do tile: gradiente vertical sutil (grafite na escura, branco na clara) -->
     <linearGradient id="fundo" x1="0" y1="8" x2="0" y2="120" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="{{GRAFITE_TOPO}}"/>
-      <stop offset="1" stop-color="{{GRAFITE_BASE}}"/>
+      <stop offset="0" stop-color="{{TILE_TOPO}}"/>
+      <stop offset="1" stop-color="{{TILE_BASE}}"/>
     </linearGradient>
 
     <!-- reflexo largo e suave na metade de cima (vidro) -->
@@ -54,15 +56,16 @@
       <feOffset dy="2.5" result="desl"/>
       <feComponentTransfer in="desl" result="sombra">
         <feFuncA type="linear" slope="{{SOMBRA_LOGO}}"/>
-      </feComponentTransfer>
+      </feComponentTransfer>{{CONTORNO_FILTRO}}
       <feMerge>
-        <feMergeNode in="sombra"/>
+        <feMergeNode in="sombra"/>{{CONTORNO_MERGE}}
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
 
     <!-- paleta dos desenhos próprios: gradiente vertical, mais claro em cima -->
-    <linearGradient id="branco" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DADADF"/></linearGradient>
+    <linearGradient id="branco" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{BRANCO_TOPO}}"/><stop offset="1" stop-color="{{BRANCO_BASE}}"/></linearGradient>
+    <linearGradient id="tinta" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{TINTA_TOPO}}"/><stop offset="1" stop-color="{{TINTA_BASE}}"/></linearGradient>
     <linearGradient id="prata" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#EEEEF2"/><stop offset="0.55" stop-color="#C2C2C8"/><stop offset="1" stop-color="#8E8E95"/></linearGradient>
     <linearGradient id="grafite" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#6A6A70"/><stop offset="1" stop-color="#3A3A3F"/></linearGradient>
     <linearGradient id="grafite-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3C3C41"/><stop offset="1" stop-color="#1C1C20"/></linearGradient>
@@ -71,7 +74,7 @@
     <linearGradient id="coral" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{CORAL_CLARO}}"/><stop offset="0.5" stop-color="{{CORAL}}"/><stop offset="1" stop-color="{{CORAL_FUNDO}}"/></linearGradient>
     <linearGradient id="coral-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{CORAL_ESCURO}}"/><stop offset="1" stop-color="{{CORAL_ESCURO_FUNDO}}"/></linearGradient>
     <linearGradient id="menta" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{MENTA_CLARO}}"/><stop offset="0.5" stop-color="{{MENTA}}"/><stop offset="1" stop-color="{{MENTA_FUNDO}}"/></linearGradient>
-    <linearGradient id="menta-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{MENTA_ESCURO}}"/><stop offset="1" stop-color="{{MENTA_ESCURO_FUNDO}}"/></linearGradient>
+    <linearGradient id="menta-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{MENTA_ESCURO}}"/><stop offset="1" stop-color="{{MENTA_ESCURO_FUNDO}}"/></linearGradient>{{DEFS_EXTRA}}
   </defs>
 
   <!-- Escala geral: tile_lado/112 para os ícones com tile; avulsos_escala para os avulsos. -->

@@ -1,4 +1,4 @@
-"""Fontes dos ícones do tema Brisa.
+"""Fontes dos ícones do Vitral-icons.
 
 Cada app declara de onde vem o seu logo, nesta ordem de preferência:
 
@@ -11,7 +11,9 @@ Cada app declara de onde vem o seu logo, nesta ordem de preferência:
                         marca: GNOME, pastas, lixeira e dispositivos.
 
 Os desenhos usam a paleta do template (tile.svg): coral, âmbar e menta como
-cores de destaque, mais branco, prata e grafite. Quadro 128x128, centrado em
+cores de destaque, mais branco, prata e grafite, e "tinta" para glifos que
+ficam direto sobre o tile (claro na variante escura, grafite na clara). Os
+mesmos desenhos servem às duas variantes. Quadro 128x128, centrado em
 (64,64), ocupando ~ x/y 28..100.
 """
 from math import cos, radians, sin
@@ -179,7 +181,7 @@ FONTE_UI = "Adwaita Sans, Inter, Cantarell, sans-serif"
 def calendario_hoje():
     """Calendário com a data de HOJE, no estilo do iOS escuro: dia da semana em
     coral em cima e o número do dia grande e fino. O tema é regerado todo dia
-    à meia-noite (systemd/brisa-icons.timer) para a data acompanhar."""
+    à meia-noite (systemd/vitral-icons.timer) para a data acompanhar."""
     import datetime
     import locale
     try:
@@ -191,7 +193,7 @@ def calendario_hoje():
     if (locale.getlocale(locale.LC_TIME)[0] or "").startswith("pt"):
         semana += "."          # "Seg.", "Ter.", ...
     return (T(64, 46, semana, 20, "#F0685A", FONTE_UI, "600")
-            + T(64, 103, str(hoje.day), 62, "branco", FONTE_UI, "300"))
+            + T(64, 103, str(hoje.day), 62, "tinta", FONTE_UI, "300"))
 
 
 # Lixeira "solta" (sem tile, como no dock do Mac): cesto cinza translúcido,
@@ -300,7 +302,7 @@ DESENHOS = {
                         + S(arco(64, 72, 30, 150, 215), "menta", 10, BUTT)
                         + S(arco(64, 72, 30, 218, 278), "ambar", 10, BUTT)
                         + S(arco(64, 72, 30, 281, 330), "coral", 10, BUTT)
-                        + S("M64 72 L82 52", "branco", 5) + FC(64, 72, 7, "prata")),
+                        + S("M64 72 L82 52", "tinta", 5) + FC(64, 72, 7, "prata")),
 
     # Pasta Utilitários
     "decibels": "".join(S(f"M{x} {64 - h} V{64 + h}", c, 7)
@@ -555,29 +557,6 @@ MIMETIPOS = {
                    "application-x-firmware", "application-x-msdownload", "application-x-appimage"],
 }
 
-
-# ── Ícones simbólicos próprios (botões de janela) ─────────────────────────
-# Formas cheias num quadro 16x16: o GTK recolore o preenchimento.
-def _simbolico(d, regra="nonzero"):
-    return ('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">'
-            f'<path d="{d}" fill="#2e3436" fill-rule="{regra}"/></svg>\n')
-
-
-SIMBOLICOS = {
-    # ✕ : dois traços diagonais de 1.6
-    "window-close-symbolic": _simbolico(
-        "M4.13 3 L8 6.87 L11.87 3 L13 4.13 L9.13 8 L13 11.87 L11.87 13 L8 9.13 L4.13 13 L3 11.87 L6.87 8 L3 4.13 Z"),
-    # − : traço horizontal
-    "window-minimize-symbolic": _simbolico(
-        "M3.8 7.2 H12.2 A0.8 0.8 0 0 1 12.2 8.8 H3.8 A0.8 0.8 0 0 1 3.8 7.2 Z"),
-    # ⤢ : duas setas diagonais, para fora
-    "window-maximize-symbolic": _simbolico(
-        "M13 3 V8.2 L11.1 6.3 L8.9 8.5 L7.5 7.1 L9.7 4.9 L7.8 3 Z "
-        "M3 13 V7.8 L4.9 9.7 L7.1 7.5 L8.5 8.9 L6.3 11.1 L8.2 13 Z"),
-    # restaurar: dois quadrados sobrepostos
-    "window-restore-symbolic": _simbolico(
-        "M3 6 H10 V13 H3 Z M4.5 7.5 V11.5 H8.5 V7.5 Z M6 3 H13 V10 H11.4 V4.6 H6 Z", "evenodd"),
-}
 
 # ── Mapa de apps ──────────────────────────────────────────────────────────
 # (rótulo, seções, fonte, ids .desktop, nomes extras de ícone)

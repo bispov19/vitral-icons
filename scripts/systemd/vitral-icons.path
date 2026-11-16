@@ -1,5 +1,5 @@
 [Unit]
-Description=Brisa: vigia instalação e remoção de apps
+Description=Vitral-icons: vigia instalação e remoção de apps
 
 [Path]
 # RPM, Flatpak (sistema e usuário) e apps do usuário (inclui web apps do Brave)
@@ -7,7 +7,7 @@ PathModified=/usr/share/applications
 PathModified=/var/lib/flatpak/exports/share/applications
 PathModified=@HOME@/.local/share/applications
 PathModified=@HOME@/.local/share/flatpak/exports/share/applications
-Unit=brisa-icons.service
+Unit=vitral-icons.service
 
 [Install]
 WantedBy=default.target

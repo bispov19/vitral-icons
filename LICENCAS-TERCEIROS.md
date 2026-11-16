@@ -1,8 +1,8 @@
 # Licenças de terceiros
 
-O código do Brisa (geradores, scripts, modelos de CSS) e os desenhos próprios
-(ícones de apps sem marca, pastas, tipos de arquivo, lixeira, dispositivos e
-símbolos dos botões de janela) estão sob a licença MIT, em [LICENSE](LICENSE).
+O código do Vitral-icons (gerador, template do tile e scripts) e os desenhos
+próprios (ícones de apps sem marca, pastas, tipos de arquivo, lixeira e
+dispositivos) estão sob a licença MIT, em [LICENSE](LICENSE).
 
 Partes que vêm de terceiros:
 
@@ -11,8 +11,6 @@ Partes que vêm de terceiros:
 | Logos do [Simple Icons](https://simpleicons.org) (Brave, Claude, Deezer, Discord, WhatsApp) | `icons/fontes/simple-icons/` | CC0 1.0 (domínio público) |
 | Logo do Vivaldi no Simple Icons | `icons/fontes/simple-icons/vivaldi.svg` | CC BY 4.0, © Vivaldi Technologies |
 | Ícones originais dos apps (Firefox, Spotify, VS Code, LibreOffice…) | lidos do sistema na hora de gerar; **não** ficam no repositório | a de cada app |
-| CSS padrão do GNOME Shell | extraído do `gnome-shell-theme.gresource` instalado na hora de gerar; **não** fica no repositório | GPL-2.0-or-later (o `gnome-shell.css` gerado herda essa licença) |
-| Temas Adwaita do GTK 3 e padrão do GTK 4 | importados em tempo de execução (`resource:///…`); **não** ficam no repositório | LGPL-2.1-or-later |
 
 ## Marcas
 

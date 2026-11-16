@@ -1,138 +1,148 @@
-# Brisa
+# Vitral-icons
 
-Tema completo para GNOME no Fedora: ícones, GTK 3/GTK 4 (libadwaita) e GNOME
-Shell. Estrutura e proporções no estilo do macOS, com identidade própria:
-superfícies grafite, vidro escuro e a paleta coral `#F0685A`, âmbar `#F5B53F`
-e menta `#4FC7A2`.
+Tema de ícones para GNOME no Fedora, inspirado no visual do iOS e do macOS:
+cada app com o seu logo colorido num tile de superelipse, todos com o mesmo
+peso visual. Vem em duas versões, cada uma um tema completo e independente:
 
-![Preview dos ícones](docs/preview.png)
+- **Vitral-icons** (escuro): tiles grafite de vidro, com borda de luz tingida
+  pela cor do logo.
+- **Vitral-icons-Light** (claro): tiles brancos com leve gradiente e borda
+  sutil tingida; glifos que eram brancos sobre o tile viram grafite.
 
-- **Ícones:** cada app com o seu logo colorido num tile escuro de vidro
-  (superelipse), no mesmo peso visual; pastas no estilo macOS; tipos de arquivo
-  como folha dobrada com etiqueta colorida; versões otimizadas de 16 a 256 px.
-- **Janelas:** botões redondos à esquerda (fechar, minimizar, maximizar),
-  superfícies grafite, cantos arredondados, destaque configurável.
-- **GNOME Shell:** painel superior translúcido; menus, menu rápido, calendário,
-  notificações, OSD e Alt+Tab em vidro escuro.
-- **Sem extensões de terceiros.** Só o tema do Shell precisa da extensão
-  oficial User Themes; ícones e GTK funcionam sem nenhuma.
+![Os dois temas: Vitral-icons à esquerda e Vitral-icons-Light à direita](docs/preview.png)
 
-Feito e testado no Fedora 45 com GNOME Shell 51.1, libadwaita 1.10, GTK 4.24 e
-GTK 3.24. Os geradores detectam as versões instaladas (veja
-[Quando o GNOME mudar de versão](#quando-o-gnome-mudar-de-versão)).
+O que tem nos dois:
+
+- **Apps:** o logo original de cada app (ou o do [Simple Icons](https://simpleicons.org))
+  no tile; desenhos próprios, na paleta coral `#F0685A`, âmbar `#F5B53F` e
+  menta `#4FC7A2`, para os apps do GNOME que não têm marca.
+- **Pastas** no estilo do macOS, com emblema para Documentos, Downloads,
+  Imagens, Músicas, Vídeos e as demais pastas especiais.
+- **Tipos de arquivo:** folha dobrada com etiqueta colorida (DOC, XLS, PPT,
+  PDF, IMG, MP3, MP4, TXT, código, ZIP, EXE).
+- **Lugares e dispositivos:** lixeira (vazia e cheia), rede, servidor, discos,
+  pendrive, fones, impressora, teclado, mouse e outros.
+- **Tamanhos:** SVG escalável a partir de 96 px e PNGs otimizados de 16, 24, 32,
+  48, 64, 128 e 256 px (nos pequenos a borda engrossa e o vidro simplifica).
+
+Feito e testado no Fedora 45 com GNOME 51. Não precisa de nenhuma extensão.
+
+## Instalar
+
+Requer Python 3.11+, Pillow, PyGObject com librsvg, pycairo e o
+`gtk-update-icon-cache` (tudo já vem no Fedora Workstation).
+
+```sh
+git clone https://github.com/viniciusbispo19/vitral-icons.git
+cd vitral-icons
+scripts/install.sh
+```
+
+O `install.sh` gera os dois temas em `~/.local/share/icons/Vitral-icons` e
+`~/.local/share/icons/Vitral-icons-Light` e atualiza o cache de ícones de
+cada um. Ele **não muda nenhuma configuração do GNOME**; para escolher o tema:
+
+```sh
+# escuro
+gsettings set org.gnome.desktop.interface icon-theme 'Vitral-icons'
+# claro
+gsettings set org.gnome.desktop.interface icon-theme 'Vitral-icons-Light'
+```
+
+Ou deixe o próprio script aplicar: `scripts/install.sh --aplicar escuro` (ou
+`--aplicar claro`). Também dá para escolher em Ajustes (GNOME Tweaks) >
+Aparência > Ícones.
+
+Opções do `install.sh`:
+
+| Opção | O que faz |
+| --- | --- |
+| `--aplicar escuro\|claro` | Também define o tema de ícones do GNOME. |
+| `--sem-servico` | Não instala o serviço que mantém os ícones atualizados. |
+| `--dry-run` | Só mostra o que faria. |
+
+### Apps instalados depois
+
+O `install.sh` instala um serviço do systemd de usuário
+(`vitral-icons.path`, `.service` e `.timer`). Quando um app é instalado ou
+removido (RPM, Flatpak ou web app), os dois temas são regerados e o app novo
+entra com o seu logo original no tile. À meia-noite, a data do ícone do
+Calendário é atualizada.
+
+### Ver a mudança
+
+O GNOME troca os ícones na hora ao mudar o tema. Se depois de reinstalar algum
+ícone continuar antigo, feche e abra o app; a dock e a grade de apps do GNOME
+Shell só releem o tema quando você sai e entra de novo na sessão (no Wayland
+não existe o Alt+F2 `r`).
+
+Para refazer o cache à mão:
+
+```sh
+gtk-update-icon-cache -f -t ~/.local/share/icons/Vitral-icons
+gtk-update-icon-cache -f -t ~/.local/share/icons/Vitral-icons-Light
+```
+
+## Desinstalar
+
+```sh
+scripts/uninstall.sh
+```
+
+Remove os dois temas e o serviço do systemd, e nada mais. Se um dos temas
+estiver aplicado, o script mostra o comando para voltar ao padrão
+(`gsettings reset org.gnome.desktop.interface icon-theme`).
+
+## Ver antes de instalar
+
+```sh
+python3 icons/gerar.py --destino build --sem-cache
+xdg-open preview.html
+```
+
+Gera os dois temas em `build/`, sem tocar no sistema, e monta um preview com
+as duas versões lado a lado: todas as seções, os tamanhos pequenos em tamanho
+real, pastas e tipos de arquivo de 16 a 96 px e de onde veio cada ícone. Com
+`--folha`, também atualiza a imagem `docs/preview.png`.
 
 ## Estrutura
 
 | Pasta / arquivo | O que tem |
 | --- | --- |
-| `config.toml` | **Todas as variáveis:** paleta, tamanhos, intensidades, destaque, superfícies, vidro. |
-| `icons/` | Gerador de ícones (`gerar.py`), template do tile (`tile.svg`), fontes de cada ícone e desenhos próprios (`glifos.py`), logos do Simple Icons (`fontes/`). |
-| `gtk/` | Gerador do tema GTK (`gerar.py`) e os modelos de CSS (`modelos/`). |
-| `shell/` | Gerador do tema do GNOME Shell (`gerar.py`) e as sobrescritas (`modelos/brisa.css`). |
-| `scripts/` | `install.sh`, `apply.sh`, `revert.sh`, `uninstall.sh`, `preview.py` e as unidades do systemd. |
-| `gerar.py` | Atalho para `icons/gerar.py` (é o que o serviço do systemd chama). |
+| `config.toml` | Todas as variáveis: paleta, tamanhos, intensidades e as cores de cada variante. |
+| `icons/gerar.py` | O gerador: lê o sistema, monta cada ícone uma vez e grava os dois temas. |
+| `icons/tile.svg` | Template do tile (forma, vidro, borda, sombras), com marcadores preenchidos por variante. |
+| `icons/glifos.py` | De onde vem cada ícone e os desenhos próprios (apps do GNOME, pastas, tipos de arquivo, dispositivos). |
+| `icons/fontes/simple-icons/` | Logos do Simple Icons usados por alguns apps. |
+| `scripts/install.sh`, `scripts/uninstall.sh` | Instalar e desinstalar os dois temas. |
+| `scripts/systemd/` | Unidades do serviço que mantém os ícones atualizados. |
+| `gerar.py` | Atalho para `icons/gerar.py` (é o que o serviço chama). |
 
-## Ver antes de instalar
+As duas versões saem da mesma fonte: os desenhos e os logos são montados uma
+vez e o gerador só troca as cores do tile, da borda e dos glifos. Não há SVG
+escrito à mão para cada versão.
 
-```sh
-python3 scripts/preview.py
-xdg-open preview.html
-```
+## Ajustar
 
-Gera tudo em `build/` (sem tocar no sistema) e abre um preview com quatro abas:
-ícones (vários tamanhos e fundos), janelas e GTK (em foco, sem foco, hover,
-maximizada), GNOME Shell (painel, menu rápido, calendário, notificação, OSD,
-Alt+Tab) e o relatório (de onde veio cada ícone e o que está pendente).
-
-## Instalar e aplicar
-
-Requer Python 3.11+, Pillow (`python3-pillow`), PyGObject com librsvg e pycairo
-(tudo já vem no Fedora Workstation). Para o tema do Shell, a extensão oficial
-User Themes: `sudo dnf install gnome-shell-extension-user-theme`.
-
-```sh
-git clone https://github.com/viniciusbispo19/brisa-icons.git
-cd brisa-icons
-scripts/install.sh      # gera os arquivos em ~/.local/share (não muda o visual)
-scripts/apply.sh        # aplica, guardando o estado atual para o revert
-```
-
-Cada parte pode ser instalada e aplicada sozinha com `--fase`:
-
-| Fase | install.sh | apply.sh |
-| --- | --- | --- |
-| `icones` | ícones em `~/.local/share/icons/Brisa` e o serviço que os mantém atualizados | `icon-theme` |
-| `gtk` | tema em `~/.local/share/themes/Brisa/gtk-3.0` e `gtk-4.0` | `gtk-theme`, `color-scheme` e o CSS em `~/.config/gtk-4.0/gtk.css` e `~/.config/gtk-3.0/gtk.css` |
-| `botoes` | não precisa | `button-layout` com os botões à esquerda |
-| `shell` | tema em `~/.local/share/themes/Brisa/gnome-shell` | habilita a User Themes e define o tema do Shell |
-
-Todos os scripts aceitam `--dry-run` (mostra o que faria) e podem ser rodados
-de novo sem efeito colateral. Para os apps Flatpak lerem o CSS do tema, use
-`scripts/apply.sh --fase gtk --flatpak`.
-
-O `install.sh --fase icones` também instala um serviço do systemd de usuário:
-quando um app é instalado ou removido, os ícones são regerados, e o app novo
-entra com o seu logo original no tile; à meia-noite, a data do ícone do
-Calendário é atualizada.
-
-## Reverter e desinstalar
-
-```sh
-scripts/revert.sh       # volta icon-theme, gtk-theme, color-scheme, button-layout,
-                        # o tema do Shell e os CSS de ~/.config ao que eram antes
-scripts/uninstall.sh    # remove os arquivos instalados e o serviço
-```
-
-O `apply.sh` guarda o estado original em `~/.config/brisa/backup.json` (cada
-valor só na primeira vez) e uma cópia dos CSS que já existiam em
-`~/.config/brisa/backup/`. O `uninstall.sh` se recusa a rodar com o tema ainda
-aplicado; rode o `revert.sh` antes (ou use `--forcar`).
-
-## Trocar a paleta e as variáveis
-
-Tudo fica em `config.toml`. Depois de editar, rode `scripts/install.sh` de novo
-(e reabra os apps). Os principais:
+Tudo fica em `config.toml`. Depois de editar, rode `scripts/install.sh` de
+novo.
 
 | Variável | Efeito |
 | --- | --- |
-| `[paleta]` | Coral, âmbar, menta e o grafite do tile. |
+| `[paleta]` | Coral, âmbar e menta dos desenhos próprios. |
 | `icones.tile_lado`, `icones.avulsos_escala` | Tamanho dos ícones no quadro (120 = margem de 4). |
 | `icones.area_alvo`, `icones.lado_maximo` | Peso visual do logo: fração da área do tile ocupada pela silhueta. |
-| `icones.tint_rim` | Quanto a borda de luz do tile puxa para a cor do logo (TINT_RIM). |
-| `icones.trash_style` | Lixeira `"tile"` ou `"avulsa"` (TRASH_STYLE). |
-| `icones.tile` e `icones.tile_pequeno` | Borda, reflexo e sombras nos tamanhos grandes e até 32 px. |
+| `icones.trash_style` | Lixeira `"tile"` ou `"avulsa"`. |
+| `icones.tile`, `icones.tile_pequeno` | Borda, reflexo e sombras nos tamanhos grandes e até 32 px. |
 | `icones.etiquetas` | Cor da etiqueta de cada tipo de arquivo. |
-| `gtk.accent` | Destaque das janelas (nome da paleta ou hex); o texto sobre ele é escolhido para passar no contraste AA. |
-| `gtk.superficies`, `gtk.raio_janela` | Tons de grafite e o raio dos cantos das janelas. |
-| `gtk.botoes_janela` | Tamanho, espaço, glifo e cor sem foco dos botões de janela. |
-| `shell.*` | Destaque do Shell, opacidade do painel e do vidro, raios. |
+| `variantes.escura`, `variantes.clara` | Nome do tema, cores do tile, cor base e tingimento da borda (`tint_rim`), cores dos glifos, contorno do logo e as sobrescritas de `tile` e `tile_pequeno` de cada versão. |
 
-Para mudar o desenho e não só os valores:
-- **Ícones:** `icons/tile.svg` (tile) e `icons/glifos.py` (de onde vem cada
-  ícone: `original`, `simple:<marca>` ou `desenho:<nome>`).
-- **GTK:** os modelos em `gtk/modelos/`.
-- **Shell:** as sobrescritas em `shell/modelos/brisa.css`.
-
-## Quando o GNOME mudar de versão
-
-Rode `scripts/install.sh` de novo: os três geradores leem o que está instalado.
-
-- **Shell:** `shell/gerar.py` extrai o CSS padrão do `gnome-shell-theme.gresource`
-  instalado e só acrescenta as sobrescritas. Ele também confere se toda classe e
-  propriedade de `shell/modelos/brisa.css` ainda existe no CSS novo; se o GNOME
-  renomear algo, o aviso aparece na saída e no preview, e o ajuste é feito
-  nesse arquivo.
-- **GTK:** `gtk/gerar.py` valida todo o CSS com o parser do GTK 4 e do GTK 3
-  instalados. As cores do libadwaita são as variáveis `:root --*-color` de
-  `gtk/modelos/libadwaita.css`; se o libadwaita mudar os nomes, ajuste ali
-  (a lista atual sai do `gresource` em `/usr/lib64/libadwaita-1.so.0`). Os temas
-  base vêm de `resource:///org/gtk/libgtk/theme/…` em `gtk/modelos/gtk4.css` e
-  `gtk3.css`.
-- **Ícones:** os nomes vêm do `Icon=` dos `.desktop` instalados e dos nomes do
-  Adwaita; app renomeado ou novo entra sozinho com o ícone original.
+Para mudar o desenho e não só os valores: `icons/tile.svg` (o tile) e
+`icons/glifos.py` (de onde vem cada ícone: `original`, `simple:<marca>` ou
+`desenho:<nome>`). Nos desenhos, a cor `tinta` é a dos glifos que ficam direto
+sobre o tile: clara na versão escura e grafite na clara.
 
 ## Licença
 
-Código e desenhos próprios: MIT, veja [LICENSE](LICENSE). Logos de marca,
-Simple Icons e partes geradas a partir do GNOME: veja
-[LICENCAS-TERCEIROS.md](LICENCAS-TERCEIROS.md).
+Código e desenhos próprios: MIT, veja [LICENSE](LICENSE). Logos de marca e do
+Simple Icons: veja [LICENCAS-TERCEIROS.md](LICENCAS-TERCEIROS.md).

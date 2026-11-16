@@ -1,5 +1,5 @@
 [Unit]
-Description=Brisa: gerar ícones no padrão do tema
+Description=Vitral-icons: gerar os temas de ícones (escuro e claro)
 
 [Service]
 Type=oneshot

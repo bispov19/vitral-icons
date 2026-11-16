@@ -1,23 +1,16 @@
-# Configuração do tema Brisa.
-# Tudo o que é ajustável (paleta, proporções, intensidades) mora aqui; os
-# geradores de cada parte (icons/, gtk/, shell/) leem este arquivo.
-
-[tema]
-nome = "Brisa"
+# Configuração do Vitral-icons.
+# Tudo o que é ajustável (paleta, proporções, intensidades e as cores de cada
+# variante) mora aqui; o gerador (icons/gerar.py) lê este arquivo.
 
 [paleta]
 coral = "#F0685A"
 ambar = "#F5B53F"
 menta = "#4FC7A2"
-# Superfícies grafite (tile dos ícones e, nas próximas fases, janelas e Shell)
-grafite_topo = "#2B2B2E"
-grafite_base = "#151517"
 
-# ── Ícones ────────────────────────────────────────────────────────────────
 [icones]
-# Tamanho do tile no quadro de 128 (112 = margem de 8; 120 = margem de 4, o
-# tamanho dos ícones maiores do Conflux) e a escala dos ícones avulsos (pastas,
-# documentos), para a pasta ficar com ~116 de largura como no Conflux.
+# Tamanho do tile no quadro de 128 (112 = margem de 8; 120 = margem de 4) e a
+# escala dos ícones avulsos (pastas, documentos), para a pasta ficar com ~116
+# de largura.
 tile_lado = 120
 avulsos_escala = 1.07
 # Peso visual: fração da área do tile ocupada pela silhueta do logo
@@ -26,10 +19,7 @@ area_alvo = 0.40
 lado_maximo = 0.84
 # Glifos que não passam pela normalização de área (layout fixo).
 sem_normalizar = ["calendario"]
-# TINT_RIM: quanto a borda de luz do tile puxa para a cor principal do logo
-# (0 = borda branca, 1 = borda na cor do logo).
-tint_rim = 0.35
-# TRASH_STYLE: "tile" (lixeira prateada no tile escuro) ou "avulsa" (sem tile).
+# TRASH_STYLE: "tile" (lixeira prateada no tile) ou "avulsa" (sem tile).
 trash_style = "tile"
 # Tamanhos fixos gerados em PNG (além do scalable).
 tamanhos = [16, 24, 32, 48, 64, 128, 256]
@@ -38,7 +28,8 @@ scalable_min = 96
 # Tamanho máximo dos PNGs embutidos nos SVGs (logos originais em bitmap).
 max_png_embutido = 256
 
-# Aparência do tile nos tamanhos grandes (>= 48 px).
+# Aparência do tile nos tamanhos grandes (>= 48 px). Valores da variante
+# escura; a clara sobrescreve o que precisa em [variantes.clara.tile].
 [icones.tile]
 borda_opacidade = 0.24      # borda interna de 1px
 borda_px = 1.0              # espessura da borda, em pixels do tamanho final
@@ -73,45 +64,60 @@ codigo = "#4A4A52"
 compactado = "#B8875A"
 executavel = "#6C7CF2"
 
-# ── GTK 3 e GTK 4 / libadwaita ───────────────────────────────────────────
-[gtk]
-# Destaque (accent): nome de uma cor da paleta ou um hex. O texto sobre ele
-# é escolhido automaticamente para passar no contraste AA (4,5:1).
-accent = "menta"
-raio_janela = 14
+# ── Variantes ─────────────────────────────────────────────────────────────
+# Cada variante vira um tema de ícones completo e instalável sozinho, com o
+# seu próprio index.theme. Os desenhos e os logos são os mesmos; mudam só as
+# cores do tile, da borda, dos glifos e as intensidades de sombra e brilho.
+#
+#   tile_topo, tile_base     gradiente vertical do tile
+#   borda_base, tint_rim     cor da borda interna antes de puxar para a cor
+#                            principal do logo, e quanto ela puxa (TINT_RIM:
+#                            0 = só a cor base, 1 = a cor do logo)
+#   branco_topo, branco_base superfícies brancas dos desenhos (papel, cartões,
+#                            mostrador do relógio, nuvem, mouse...)
+#   tinta_topo, tinta_base   glifos desenhados direto sobre o tile (número do
+#                            Calendário, ponteiro do Monitor do sistema)
+#   contorno_logo            opacidade de um contorno fino e escuro em volta
+#                            do logo, que separa branco sobre branco
+#   escurecer_logos_claros   logos de marca brancos ou prateados (sem cor)
+#                            viram grafite para não sumir no tile claro
 
-# Superfícies grafite, do fundo mais escuro ao mais claro.
-[gtk.superficies]
-conteudo = "#19191C"            # listas, editores de texto
-janela = "#1E1E21"
-barra_lateral_secundaria = "#1F1F22"
-barra_lateral = "#232326"
-barra_titulo_sem_foco = "#212124"
-barra_titulo = "#28282B"
-dialogo = "#2A2A2E"
-popover = "#2C2C30"
-miniatura = "#303034"
-texto = "#F2F2F5"
+[variantes.escura]
+nome = "Vitral-icons"
+comentario = "Tiles escuros de vidro com os logos coloridos dos apps"
+tile_topo = "#2B2B2E"
+tile_base = "#151517"
+borda_base = "#FFFFFF"
+tint_rim = 0.35
+branco_topo = "#FFFFFF"
+branco_base = "#DADADF"
+tinta_topo = "#FFFFFF"
+tinta_base = "#DADADF"
+contorno_logo = 0.0
+escurecer_logos_claros = false
 
-# Botões de fechar, minimizar e maximizar (círculos à esquerda), nas medidas
-# do macOS: 12px de diâmetro e 8px entre eles.
-[gtk.botoes_janela]
-tamanho = 12
-espaco = 8
-borda_mais_escura = 0.22      # quanto a borda de 1px escurece a cor do botão
-glifo = "rgba(0, 0, 0, 0.6)"  # cor do ✕ − ⤢, visível só com o mouse sobre o grupo
-sem_foco = "#48484D"          # círculos da janela sem foco
+[variantes.clara]
+nome = "Vitral-icons-Light"
+comentario = "Tiles claros com os logos coloridos dos apps"
+tile_topo = "#FFFFFF"
+tile_base = "#E8E8ED"
+borda_base = "#8A8A93"
+tint_rim = 0.55
+branco_topo = "#FFFFFF"
+branco_base = "#E4E4E9"
+tinta_topo = "#3A3A3F"
+tinta_base = "#1C1C20"
+contorno_logo = 0.16
+escurecer_logos_claros = true
 
-# ── GNOME Shell (tema carregado pela extensão oficial User Themes) ───────
-[shell]
-# Destaque dos toggles, sliders e seleções (nome da paleta ou hex).
-accent = "menta"
-# Painel superior translúcido, estilo macOS.
-painel_cor = "#151517"
-painel_opacidade = 0.55
-# Vidro escuro dos menus, menu rápido, calendário, notificações, OSD e Alt+Tab.
-vidro_cor = "#1E1E21"
-vidro_opacidade = 0.86
-vidro_borda_opacidade = 0.12  # borda interna branca de 1px
-raio = 18                      # cantos dos menus e painéis flutuantes
-raio_itens = 12                # cantos dos itens dentro deles
+[variantes.clara.tile]
+borda_opacidade = 0.30
+reflexo_opacidade = 0.0
+brilho_opacidade = 0.0
+sombra_interna = 0.05
+sombra_contato = 0.18
+sombra_logo = 0.22
+
+[variantes.clara.tile_pequeno]
+borda_opacidade = 0.45
+brilho_opacidade = 0.0

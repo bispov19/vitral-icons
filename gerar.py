@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Atalho: o gerador de ícones mora em icons/gerar.py (o serviço systemd chama este caminho)."""
+"""Atalho: o gerador do Vitral-icons (escuro e claro) mora em icons/gerar.py.
+
+O serviço do systemd (vitral-icons.service) chama este caminho.
+"""
 import runpy
 from pathlib import Path
 
