@@ -1,5 +1,4 @@
 preview.html
-preview-gtk.html
-preview-shell.html
+preview-*.html
 __pycache__/
 build/

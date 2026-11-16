@@ -57,7 +57,7 @@ def _arg(nome, padrao=None):
 DESTINO_PADRAO = HOME / ".local/share/icons" / NOME_DO_TEMA
 DESTINO = Path(_arg("--destino", DESTINO_PADRAO)).expanduser().resolve()
 NO_SISTEMA = DESTINO == DESTINO_PADRAO.resolve()
-PREVIEW = RAIZ / "preview.html"
+PREVIEW = RAIZ / "preview-icones.html"
 
 PASTAS_DESKTOP = [
     HOME / ".local/share/applications",

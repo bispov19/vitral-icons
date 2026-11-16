@@ -1,90 +1,48 @@
 #!/usr/bin/env bash
-# install.sh — instala as partes do tema Brisa (sem aplicar nada).
+# install.sh — instala as partes do tema Brisa, sem aplicar nada.
 #
 #   scripts/install.sh [--fase icones|gtk|shell|todas] [--dry-run]
 #
-#   icones  gera os ícones em ~/.local/share/icons/<nome>
-#   gtk     gera o tema em ~/.local/share/themes/<nome> (GTK 3 e GTK 4) e copia o
-#           CSS do libadwaita para ~/.config/gtk-4.0/gtk.css e o do GTK 3 para
-#           ~/.config/gtk-3.0/gtk.css (é o que os apps Flatpak conseguem ler),
-#           guardando backup do que já existir em ~/.config/brisa/backup/
+#   icones  gera os ícones em ~/.local/share/icons/Brisa e instala o serviço
+#           do systemd que os regenera quando apps são instalados e à meia-noite
+#           (para a data do Calendário)
+#   gtk     gera o tema GTK 3 / GTK 4 em ~/.local/share/themes/Brisa
+#   shell   gera o tema do GNOME Shell em ~/.local/share/themes/Brisa/gnome-shell
 #
-#   shell   gera o tema do GNOME Shell em ~/.local/share/themes/<nome>/gnome-shell
-#           (carregado pela extensão oficial User Themes)
-#
-# Idempotente: rodar de novo só atualiza os arquivos. Com --dry-run, só mostra
-# o que faria. Para aplicar (gsettings), veja scripts/apply.sh.
+# Idempotente: rodar de novo só atualiza os arquivos. Nada muda no visual até
+# você rodar scripts/apply.sh.
 set -euo pipefail
+. "$(dirname "${BASH_SOURCE[0]}")/comum.sh"
+ler_opcoes "$@"
 
-RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-NOME=$(python3 -c "import tomllib; print(tomllib.load(open('$RAIZ/config.toml','rb'))['tema']['nome'])")
-FASE="todas"
-DRY=0
-while [ $# -gt 0 ]; do
-    case "$1" in
-        --fase) FASE="$2"; shift 2 ;;
-        --dry-run) DRY=1; shift ;;
-        *) echo "Opção desconhecida: $1" >&2; exit 2 ;;
-    esac
-done
-
-BACKUP="${XDG_CONFIG_HOME:-$HOME/.config}/brisa/backup"
-MARCA="Brisa para apps"   # presente no topo dos CSS gerados pelo tema
-
-rodar() {
-    if [ "$DRY" = 1 ]; then printf '  [dry-run] %s\n' "$*"; else "$@"; fi
-}
-
-# Copia o CSS gerado para ~/.config/gtk-X.0/gtk.css, com backup do arquivo do
-# usuário (só se ele não for um CSS do próprio Brisa).
-instalar_css_usuario() {
-    local origem="$1" destino="$2"
-    rodar mkdir -p "$(dirname "$destino")"
-    if [ -L "$destino" ] || { [ -e "$destino" ] && ! grep -q "$MARCA" "$destino"; }; then
-        local copia
-        copia="$BACKUP/$(basename "$(dirname "$destino")")-gtk.css.$(date +%Y%m%d-%H%M%S)"
-        echo "==> Backup de $destino em $copia"
-        rodar mkdir -p "$BACKUP"
-        rodar mv "$destino" "$copia"
-    fi
-    echo "==> Copiando $origem para $destino"
-    rodar cp "$origem" "$destino"
-}
-
-if [ "$FASE" = icones ] || [ "$FASE" = todas ]; then
-    echo "==> Ícones em ~/.local/share/icons/$NOME"
-    rodar python3 "$RAIZ/icons/gerar.py"
+if fase_ativa icones; then
+    echo "==> Ícones em $ICONES_DIR"
+    rodar python3 "$RAIZ/icons/gerar.py" --destino "$ICONES_DIR"
+    echo "==> Serviço que mantém apps novos e a data do Calendário no padrão"
+    rodar mkdir -p "$CONF/systemd/user"
+    for unidade in $UNIDADES; do
+        if [ "$DRY" = 1 ]; then
+            printf '  [dry-run] instala %s\n' "$CONF/systemd/user/$unidade"
+        else
+            sed -e "s|@HOME@|$HOME|g" -e "s|@GERADOR@|$RAIZ/gerar.py|g" \
+                "$RAIZ/scripts/systemd/$unidade" > "$CONF/systemd/user/$unidade"
+        fi
+    done
+    rodar_sistema systemctl --user daemon-reload
+    rodar_sistema systemctl --user enable --now brisa-icons.path brisa-icons.timer
+    rodar_sistema systemctl --user enable brisa-icons.service
 fi
 
-if [ "$FASE" = gtk ] || [ "$FASE" = todas ]; then
-    TEMA="${XDG_DATA_HOME:-$HOME/.local/share}/themes/$NOME"
-    echo "==> Tema GTK em $TEMA"
-    rodar python3 "$RAIZ/gtk/gerar.py" --destino "$TEMA"
-    # Atenção: o libadwaita sempre lê ~/.config/gtk-4.0/gtk.css, então estas
-    # cópias já mudam o visual dos apps na próxima vez que forem abertos.
-    echo "    (as cópias abaixo já valem para os apps libadwaita e GTK 3 abertos depois)"
-    instalar_css_usuario "$TEMA/gtk-4.0/libadwaita.css" "${XDG_CONFIG_HOME:-$HOME/.config}/gtk-4.0/gtk.css"
-    instalar_css_usuario "$TEMA/gtk-3.0/gtk.css" "${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0/gtk.css"
+if fase_ativa gtk; then
+    echo "==> Tema GTK em $TEMA_DIR"
+    rodar python3 "$RAIZ/gtk/gerar.py" --destino "$TEMA_DIR"
 fi
 
-if [ "$FASE" = shell ] || [ "$FASE" = todas ]; then
-    TEMA="${XDG_DATA_HOME:-$HOME/.local/share}/themes/$NOME"
-    echo "==> Tema do GNOME Shell em $TEMA/gnome-shell"
-    rodar python3 "$RAIZ/shell/gerar.py" --destino "$TEMA"
+if fase_ativa shell; then
+    echo "==> Tema do GNOME Shell em $TEMA_DIR/gnome-shell"
+    rodar python3 "$RAIZ/shell/gerar.py" --destino "$TEMA_DIR"
 fi
 
-if [ "$DRY" = 1 ]; then echo; echo "Simulação: nada foi instalado."; else echo; echo "Instalado."; fi
-cat <<EOF
-Para aplicar, rode você mesmo:
-  gsettings set org.gnome.desktop.interface icon-theme '$NOME'
-  gsettings set org.gnome.desktop.interface gtk-theme '$NOME'
-  gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
-  gsettings set org.gnome.desktop.wm.preferences button-layout 'close,minimize,maximize:'
-Tema do GNOME Shell (extensão oficial User Themes; no Fedora o pacote é
-gnome-shell-extension-user-theme):
-  sudo dnf install gnome-shell-extension-user-theme
-  gnome-extensions enable user-theme@gnome-shell-extensions.gcampax.github.com
-  gsettings set org.gnome.shell.extensions.user-theme name '$NOME'
-Para os apps Flatpak lerem o CSS do tema:
-  flatpak override --user --filesystem=xdg-config/gtk-4.0:ro --filesystem=xdg-config/gtk-3.0:ro
-EOF
+echo
+if [ "$DRY" = 1 ]; then echo "Simulação: nada foi instalado."; else echo "Instalado."; fi
+echo "Para aplicar (com backup do que existe hoje): $RAIZ/scripts/apply.sh --fase $FASE"
