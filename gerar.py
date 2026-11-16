@@ -306,6 +306,8 @@ def montar_glifo(fonte, nome_icone):
     tipo, _, arg = fonte.partition(":")
     if tipo == "desenho":
         return DESENHOS[arg], "desenho próprio"
+    if tipo == "solto":
+        return DESENHOS[arg], "desenho próprio, sem tile"
     if tipo == "simple":
         _, licenca = SIMPLE_ICONS[arg]
         return logo_simple_icons(arg), f"Simple Icons: {arg} ({licenca})"
@@ -318,8 +320,12 @@ def montar_glifo(fonte, nome_icone):
 
 
 # ── Geração ───────────────────────────────────────────────────────────────
-def montar(template, corpo):
+def montar(template, corpo, tile=True):
     corpo = "\n".join("    " + parte for parte in corpo.replace("><", ">\n<").splitlines())
+    if not tile:
+        template = re.sub(r"\s*<!-- tile:inicio.*?<!-- tile:fim -->", "", template, flags=re.S)
+    # O marcador fica sozinho numa linha; o comentário do template não o repete.
+    assert template.count("{{GLIFO}}") == 1, "tile.svg deve ter um único {{GLIFO}}"
     return template.replace("{{GLIFO}}", corpo)
 
 
@@ -338,7 +344,7 @@ def escrever_index():
 def gerar():
     template = TEMPLATE.read_text()
     faltando = [f for _, _, f, _, _ in APPS + ICONES_FIXOS
-                if f.startswith("desenho:") and f[8:] not in DESENHOS
+                if f.split(":")[0] in ("desenho", "solto") and f.split(":", 1)[1] not in DESENHOS
                 or f.startswith("simple:") and f[7:] not in SIMPLE_ICONS]
     if faltando:
         sys.exit(f"Fontes não definidas em glifos.py: {', '.join(faltando)}")
@@ -360,7 +366,7 @@ def gerar():
         if corpo is None:
             problemas.append((rotulo, fonte, nomes[0], descricao, None))
             return
-        svg = montar(template, corpo)
+        svg = montar(template, corpo, tile=not fonte.startswith("solto:"))
         for nome in nomes:
             (novo / contexto / f"{nome}.svg").write_text(svg)
             escritos[nome] = rotulo

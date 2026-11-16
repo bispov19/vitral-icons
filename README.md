@@ -19,6 +19,10 @@ tile escuro de vidro.
      (Arquivos, Configurações, Calculadora, Calendário, apps do GNOME), pastas,
      lixeira e dispositivos, usando coral `#F0685A`, âmbar `#F5B53F` e menta
      `#4FC7A2` com branco, prata e grafite.
+- **Calendário com a data de hoje** (dia da semana em coral e o número do dia), regerado
+  todo dia à meia-noite por `systemd/brisa-icons.timer`.
+- **Lixeira solta**, sem tile, como no dock do Mac: cesto cinza translúcido e, cheia,
+  papéis amassados em coral, âmbar e menta.
 - **Cobertura:** apps, pastas e lugares, lixeira e dispositivos. Ícones symbolic e de
   tipos de arquivo vêm do Adwaita (`Inherits=Adwaita,hicolor`).
 - **Apps novos ficam no padrão sozinhos:** um serviço do systemd vigia as pastas de
@@ -52,7 +56,7 @@ repositório (abra no navegador para conferir tudo antes de aplicar).
 | `glifos.py` | De onde vem cada ícone (`original`, `simple:<marca>` ou `desenho:<nome>`), os desenhos próprios e o mapa app → `.desktop`. |
 | `gerar.py` | Lê o `Icon=` real de cada `.desktop` instalado, monta os SVGs com esse nome e lista a fonte de cada um. Para trocar o nome do tema, mude `NOME_DO_TEMA` no topo. |
 | `fontes/simple-icons/` | Logos do Simple Icons usados, com as licenças em `LICENCA.md`. |
-| `systemd/` | `brisa-icons.path` vigia as pastas de apps; `brisa-icons.service` roda o gerador. |
+| `systemd/` | `brisa-icons.path` vigia as pastas de apps, `brisa-icons.timer` atualiza a data do Calendário à meia-noite e `brisa-icons.service` roda o gerador. |
 
 Pastas de `.desktop` lidas, nesta ordem: `~/.local/share/applications`,
 `~/.local/share/flatpak/exports/share/applications`,
@@ -82,8 +86,8 @@ journalctl --user -u brisa-icons.service    # log do serviço automático
 
 ```sh
 gsettings reset org.gnome.desktop.interface icon-theme
-systemctl --user disable --now brisa-icons.path brisa-icons.service
-rm ~/.config/systemd/user/brisa-icons.{path,service}
+systemctl --user disable --now brisa-icons.path brisa-icons.timer brisa-icons.service
+rm ~/.config/systemd/user/brisa-icons.{path,timer,service}
 rm -r ~/.local/share/icons/Brisa
 ```
 

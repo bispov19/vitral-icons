@@ -1,0 +1,11 @@
+[Unit]
+Description=Brisa: atualizar a data do ícone do Calendário
+
+[Timer]
+# Logo depois da meia-noite; se o PC estava desligado, roda ao ligar.
+OnCalendar=*-*-* 00:00:30
+Persistent=true
+Unit=brisa-icons.service
+
+[Install]
+WantedBy=timers.target

@@ -2,7 +2,7 @@
   <!--
     Template do tile do tema. Tudo que define o "estilo" mora aqui: forma,
     fundo, vidro, sombra do logo e a paleta dos desenhos próprios.
-    O gerador só substitui {{GLIFO}} pelo logo/desenho, já posicionado num
+    O gerador só troca o marcador GLIFO (lá embaixo) pelo logo/desenho, já posicionado num
     quadro 128x128, centrado em (64,64), ocupando ~70px (~62% do tile).
 
     Forma: superelipse |x|^5 + |y|^5 = 1 (squircle do iOS), lado de 112px
@@ -70,7 +70,7 @@
     <linearGradient id="menta-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3AAE8C"/><stop offset="1" stop-color="#1D7C60"/></linearGradient>
   </defs>
 
-  <!-- tile -->
+  <!-- tile:inicio (ícones "soltos", como a lixeira, saem sem este trecho) -->
   <use xlink:href="#forma" href="#forma" fill="url(#fundo)"/>
 
   <g clip-path="url(#recorte)">
@@ -83,6 +83,7 @@
     <!-- brilho fino no topo -->
     <use xlink:href="#forma" href="#forma" fill="none" stroke="url(#brilho)" stroke-width="2"/>
   </g>
+  <!-- tile:fim -->
 
   <!-- logo / desenho -->
   <g stroke-linecap="round" stroke-linejoin="round" filter="url(#sombra-logo)">

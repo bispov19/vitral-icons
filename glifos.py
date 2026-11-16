@@ -149,9 +149,6 @@ def tela(x, y, w, h):
 
 NUVEM = "M44 93 A12 12 0 1 1 45.1 69.1 A19 19 0 1 1 82.9 65.2 A14 14 0 1 1 85 93 Z"
 PECA = "M34 46 H50 A9 9 0 1 1 66 46 H82 V61 A9 9 0 1 1 82 77 V94 H34 Z"
-LIXEIRA_CORPO = "M35 49 H93 L88.5 93 Q88 99 82 99 H46 Q40 99 39.5 93 Z"
-LIXEIRA_TAMPA = (FR(30, 37, 68, 9, 4.5, "prata")
-                 + S("M53 37 V34 Q53 30 57 30 H71 Q75 30 75 34 V37", "prata", 4))
 CONTROLE = ("M44 46 H84 Q96 46 99 60 L102 80 Q103 93 91 92 L80 82 H48 L37 92 "
             "Q25 93 26 80 L29 60 Q32 46 44 46 Z")
 
@@ -173,6 +170,63 @@ def fones(mic=False):
          + FR(29, 66, 6, 14, 3, "coral") + FR(93, 66, 6, 14, 3, "coral"))
     if mic:
         s += S("M37 94 Q38 100 52 100", "prata", 4) + FC(56, 100, 4.5, "coral")
+    return s
+
+
+FONTE_UI = "Adwaita Sans, Inter, Cantarell, sans-serif"
+
+
+def calendario_hoje():
+    """Calendário com a data de HOJE, no estilo do iOS escuro: dia da semana em
+    coral em cima e o número do dia grande e fino. O tema é regerado todo dia
+    à meia-noite (systemd/brisa-icons.timer) para a data acompanhar."""
+    import datetime
+    import locale
+    try:
+        locale.setlocale(locale.LC_TIME, "")
+    except locale.Error:
+        pass
+    hoje = datetime.date.today()
+    semana = hoje.strftime("%a").strip(".").capitalize()
+    if (locale.getlocale(locale.LC_TIME)[0] or "").startswith("pt"):
+        semana += "."          # "Seg.", "Ter.", ...
+    return (T(64, 46, semana, 20, "#F0685A", FONTE_UI, "600")
+            + T(64, 103, str(hoje.day), 62, "branco", FONTE_UI, "300"))
+
+
+# Lixeira "solta" (sem tile, como no dock do Mac): cesto cinza translúcido,
+# levemente afunilado, com frisos verticais; cheia, mostra papéis amassados.
+LIXEIRA_CORPO = "M24 31 Q24 26 29 26 H99 Q104 26 104 31 L98.5 108 Q97.5 117 88.5 117 H39.5 Q30.5 117 29.5 108 Z"
+LIXEIRA_DEFS = (
+    '<defs>'
+    '<linearGradient id="cesto" x1="0" y1="26" x2="0" y2="117" gradientUnits="userSpaceOnUse">'
+    '<stop offset="0" stop-color="#F7F7FA"/><stop offset="1" stop-color="#B9B9C1"/></linearGradient>'
+    '<linearGradient id="cesto-lados" x1="24" y1="0" x2="104" y2="0" gradientUnits="userSpaceOnUse">'
+    '<stop offset="0" stop-color="#000" stop-opacity="0.16"/><stop offset="0.28" stop-color="#FFF" stop-opacity="0.10"/>'
+    '<stop offset="0.5" stop-color="#FFF" stop-opacity="0.22"/><stop offset="0.75" stop-color="#FFF" stop-opacity="0"/>'
+    '<stop offset="1" stop-color="#000" stop-opacity="0.18"/></linearGradient>'
+    '</defs>')
+
+
+def lixeira(cheia=False):
+    s = LIXEIRA_DEFS + FR(26, 22, 76, 9, 4.5, "#76767D")          # boca (fundo escuro)
+    if cheia:
+        papeis = (("M31 30 L33 11 L46 6 L56 13 L54 30 Z", "#F4F4F7"),
+                  ("M47 30 L53 3 L72 8 L70 30 Z", "#4FC7A2"),
+                  ("M63 30 L68 8 L85 5 L89 30 Z", "#F5B53F"),
+                  ("M79 30 L88 10 L101 18 L97 30 Z", "#F0685A"),
+                  ("M39 30 L42 17 L52 21 L50 30 Z", "#C9C9CF"))
+        for d, cor in papeis:
+            s += FS(d, cor, 2.5)
+        s += S("M39 12 L47 22 M58 7 L62 24 M74 9 L77 25 M89 14 L92 25", "#FFFFFF", 1.5,
+               ' stroke-opacity="0.55"')
+    s += f'<path d="{LIXEIRA_CORPO}" fill="url(#cesto)" fill-opacity="0.96"/>'
+    s += f'<path d="{LIXEIRA_CORPO}" fill="url(#cesto-lados)"/>'
+    for i in range(7):                                             # frisos
+        xt, xb = 33 + i * 10.3, 37.5 + i * 8.83
+        s += S(f"M{xt:.1f} 36 L{xb:.1f} 109", "#FFFFFF", 1.6, ' stroke-opacity="0.45"')
+        s += S(f"M{xt + 2:.1f} 36 L{xb + 1.7:.1f} 109", "#000000", 1, ' stroke-opacity="0.07"')
+    s += S("M27 27.5 H101", "#FFFFFF", 2, ' stroke-opacity="0.9"')  # borda da boca
     return s
 
 
@@ -203,12 +257,7 @@ DESENHOS = {
                     + "".join(FC(x, y, 5.3, "ambar" if x == 78 else "grafite")
                               for y in (61, 74, 87) for x in (50, 64, 78))),
 
-    "calendario": (FR(31, 33, 66, 64, 14, "branco")
-                   + F("M31 47 Q31 33 45 33 H83 Q97 33 97 47 V51 H31 Z", "coral")
-                   + FR(43, 27, 6, 13, 3, "prata") + FR(79, 27, 6, 13, 3, "prata")
-                   + "".join(FC(x, y, 3.2, "grafite")
-                             for y in (63, 75, 87) for x in (43, 57, 71, 85) if (x, y) != (71, 75))
-                   + FC(71, 75, 6.5, "coral") + FC(71, 75, 2.8, "branco")),
+    "calendario": calendario_hoje(),
 
     "configuracoes": (F(engrenagem(64, 64, 36, 30, 12, 8.5, 5.5), "prata")
                       + FC(64, 64, 23, "grafite-escuro")
@@ -352,12 +401,8 @@ DESENHOS = {
     "rede": (S("M64 40 L40 86 M64 40 L88 86 M40 86 H88", "prata", 5)
              + FC(64, 40, 11, "menta") + FC(40, 86, 11, "ambar") + FC(88, 86, 11, "coral")
              + FC(64, 40, 4, "branco") + FC(40, 86, 4, "branco") + FC(88, 86, 4, "branco")),
-    "lixeira": (LIXEIRA_TAMPA + F(LIXEIRA_CORPO, "prata")
-                + S("M52 59 V89 M64 59 V89 M76 59 V89", "grafite", 4)),
-    "lixeira-cheia": (FC(50, 49, 10, "branco") + FC(67, 45, 12, "branco") + FC(81, 51, 8, "coral")
-                      + F(LIXEIRA_CORPO, "prata")
-                      + S("M52 59 V89 M64 59 V89 M76 59 V89", "grafite", 4)
-                      + G(LIXEIRA_TAMPA, "translate(-2 -6) rotate(-14 30 42)")),
+    "lixeira": lixeira(),
+    "lixeira-cheia": lixeira(cheia=True),
 
     # Dispositivos
     "fones": fones(),
@@ -527,8 +572,8 @@ ICONES_FIXOS = [
     ("Favoritos", "Lugares", "desenho:favoritos", ["user-bookmarks"], "places"),
     ("Servidor", "Lugares", "desenho:servidor", ["network-server"], "places"),
     ("Rede", "Lugares", "desenho:rede", ["network-workgroup"], "places"),
-    ("Lixeira", "Lugares", "desenho:lixeira", ["user-trash"], "places"),
-    ("Lixeira cheia", "Lugares", "desenho:lixeira-cheia", ["user-trash-full"], "places"),
+    ("Lixeira", "Lugares", "solto:lixeira", ["user-trash"], "places"),
+    ("Lixeira cheia", "Lugares", "solto:lixeira-cheia", ["user-trash-full"], "places"),
 
     ("Fones", "Dispositivos", "desenho:fones", ["audio-headphones"], "devices"),
     ("Headset", "Dispositivos", "desenho:headset", ["audio-headset"], "devices"),

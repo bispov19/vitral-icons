@@ -9,12 +9,12 @@ DEST="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 NOME=$(sed -n 's/^NOME_DO_TEMA = "\(.*\)"/\1/p' "$REPO/gerar.py")
 
 mkdir -p "$DEST"
-for unidade in brisa-icons.path brisa-icons.service; do
+for unidade in brisa-icons.path brisa-icons.service brisa-icons.timer; do
   sed -e "s|@HOME@|$HOME|g" -e "s|@GERADOR@|$REPO/gerar.py|g" \
     "$REPO/systemd/$unidade" > "$DEST/$unidade"
 done
 systemctl --user daemon-reload
-systemctl --user enable --now brisa-icons.path
+systemctl --user enable --now brisa-icons.path brisa-icons.timer
 systemctl --user enable brisa-icons.service
 
 python3 "$REPO/gerar.py"
