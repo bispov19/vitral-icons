@@ -1,0 +1,85 @@
+/* ── Botões de janela (GTK 4 / libadwaita) ──────────────────────────────
+   Círculos de {{TAM}}px à esquerda: fechar, minimizar, maximizar.
+   Os glifos (✕ − ⤢ e restaurar, do tema de ícones) só aparecem com o mouse
+   sobre o grupo; na janela sem foco os círculos ficam cinza. */
+
+windowcontrols {
+  border-spacing: {{ESPACO}}px;
+}
+
+windowcontrols > button,
+headerbar.default-decoration windowcontrols > button {
+  min-width: {{TAM}}px;
+  min-height: {{TAM}}px;
+  padding: 0;
+  margin: 0;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-image: none;
+  box-shadow: none;
+  outline: none;
+  transition: background-color 120ms ease-out, border-color 120ms ease-out, filter 120ms ease-out;
+}
+
+windowcontrols > button > image,
+headerbar.default-decoration windowcontrols > button > image {
+  padding: 0;
+  margin: 0;
+  background: none;
+  box-shadow: none;
+  -gtk-icon-size: {{GLIFO_TAM}}px;
+  color: transparent;
+  transition: color 120ms ease-out;
+}
+
+/* glifos só com o mouse sobre o grupo de botões */
+windowcontrols:hover > button > image {
+  color: {{GLIFO}};
+}
+
+windowcontrols > button.close {
+  background-color: {{FECHAR}};
+  border-color: {{FECHAR_BORDA}};
+}
+
+windowcontrols > button.minimize {
+  background-color: {{MINIMIZAR}};
+  border-color: {{MINIMIZAR_BORDA}};
+}
+
+/* maximizar e restaurar (janela maximizada: o glifo vira window-restore) */
+windowcontrols > button.maximize,
+window.maximized windowcontrols > button.maximize,
+window.fullscreen windowcontrols > button.maximize {
+  background-color: {{MAXIMIZAR}};
+  border-color: {{MAXIMIZAR_BORDA}};
+}
+
+windowcontrols > button:hover {
+  filter: brightness(1.06);
+}
+
+windowcontrols > button:active {
+  filter: brightness(0.82);
+}
+
+/* janela sem foco: círculos cinza; com o mouse sobre o grupo, voltam as cores */
+windowcontrols > button:backdrop {
+  background-color: {{SEM_FOCO}};
+  border-color: {{SEM_FOCO_BORDA}};
+}
+
+windowcontrols:hover > button.close:backdrop {
+  background-color: {{FECHAR}};
+  border-color: {{FECHAR_BORDA}};
+}
+
+windowcontrols:hover > button.minimize:backdrop {
+  background-color: {{MINIMIZAR}};
+  border-color: {{MINIMIZAR_BORDA}};
+}
+
+windowcontrols:hover > button.maximize:backdrop {
+  background-color: {{MAXIMIZAR}};
+  border-color: {{MAXIMIZAR_BORDA}};
+}

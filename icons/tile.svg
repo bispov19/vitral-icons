@@ -74,6 +74,9 @@
     <linearGradient id="menta-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{MENTA_ESCURO}}"/><stop offset="1" stop-color="{{MENTA_ESCURO_FUNDO}}"/></linearGradient>
   </defs>
 
+  <!-- Escala geral: tile_lado/112 para os ícones com tile; avulsos_escala para os avulsos. -->
+  <g transform="translate(64 64) scale({{ESCALA}}) translate(-64 -64)">
+
   <!-- tile:inicio (ícones avulsos, como pastas e documentos, saem sem este trecho) -->
   <!-- sombra de contato na base -->
   <ellipse cx="64" cy="119.5" rx="44" ry="3.5" fill="#000000" fill-opacity="{{SOMBRA_CONTATO}}" filter="url(#desfoque-contato)"/>
@@ -95,5 +98,6 @@
   <!-- logo / desenho -->
   <g stroke-linecap="round" stroke-linejoin="round" filter="url(#sombra-logo)">
 {{GLIFO}}
+  </g>
   </g>
 </svg>

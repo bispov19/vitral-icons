@@ -120,7 +120,7 @@ TEMPLATE_TEXTO = TEMPLATE.read_text()
 assert TEMPLATE_TEXTO.count("{{GLIFO}}") == 1, "tile.svg deve ter um único marcador GLIFO"
 
 
-def parametros(tamanho):
+def parametros(tamanho, escala=1.0):
     """Valores do tile para um tamanho final em px (None = scalable)."""
     pequeno = CFG["tile_pequeno"]
     p = pequeno if tamanho and tamanho <= pequeno["ate_px"] else CFG["tile"]
@@ -128,7 +128,7 @@ def parametros(tamanho):
     return {
         "BORDA_OPACIDADE": p["borda_opacidade"],
         # O traço é recortado pelo tile (só metade fica dentro): 2x a espessura.
-        "BORDA_LARGURA": round(2 * p["borda_px"] * 128 / ref, 3),
+        "BORDA_LARGURA": round(2 * p["borda_px"] * 128 / ref / escala, 3),
         "REFLEXO": p["reflexo_opacidade"],
         "BRILHO": p["brilho_opacidade"],
         "BRILHO_MEIO": round(p["brilho_opacidade"] * 0.2, 3),
@@ -138,8 +138,10 @@ def parametros(tamanho):
     }
 
 
-def montar(corpo, tile=True, borda="#FFFFFF", tamanho=None):
-    valores = {**PALETA, **parametros(tamanho), "BORDA_COR": borda}
+def montar(corpo, tile=True, borda="#FFFFFF", tamanho=None, escala=None):
+    if escala is None:
+        escala = CFG["tile_lado"] / TILE if tile else CFG["avulsos_escala"]
+    valores = {**PALETA, **parametros(tamanho, escala), "BORDA_COR": borda, "ESCALA": round(escala, 4)}
     svg = TEMPLATE_TEXTO
     if not tile:
         svg = re.sub(r"\s*<!-- tile:inicio.*?<!-- tile:fim -->", "", svg, flags=re.S)
@@ -321,7 +323,7 @@ def cor_principal(img):
 def normalizar(corpo):
     """Ajusta a escala do glifo para a silhueta ocupar `area_alvo` do tile,
     sem o maior lado passar de `lado_maximo`. Devolve (corpo, medidas)."""
-    img = renderizar_svg(montar(corpo, tile=False, tamanho=None).replace(
+    img = renderizar_svg(montar(corpo, tile=False, tamanho=None, escala=1).replace(
         'filter="url(#sombra-logo)"', "").encode(), 256)
     area, bbox = silhueta(img)
     if not bbox:
@@ -509,7 +511,7 @@ def gerar():
         if tile:
             if normaliza:
                 corpo, medidas = normalizar(corpo)
-            principal = cor_principal(renderizar_svg(montar(corpo, tile=False).encode(), 256))
+            principal = cor_principal(renderizar_svg(montar(corpo, tile=False, escala=1).encode(), 256))
             if principal:
                 borda = misturar("#FFFFFF", principal, CFG["tint_rim"])
         svg = montar(corpo, tile, borda)

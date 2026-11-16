@@ -1,0 +1,92 @@
+/* Brisa para apps libadwaita (GTK 4).
+   O libadwaita não lê o tema GTK: ele só carrega ~/.config/gtk-4.0/gtk.css,
+   que o instalador liga a este arquivo (com backup do que já existir).
+   Gerado por gtk/gerar.py a partir de config.toml; edite gtk/modelos/.
+   Feito para libadwaita {{VERSAO_ADW}} e GTK {{VERSAO_GTK4}}: as cores usam as
+   variáveis CSS (:root --*-color) e os @define-color equivalentes. */
+
+@define-color accent_bg_color {{ACCENT}};
+@define-color accent_fg_color {{ACCENT_TEXTO}};
+@define-color accent_color {{ACCENT_DESTAQUE}};
+@define-color destructive_bg_color {{CORAL}};
+@define-color destructive_fg_color {{CORAL_TEXTO}};
+@define-color success_bg_color {{MENTA}};
+@define-color success_fg_color {{MENTA_TEXTO}};
+@define-color warning_bg_color {{AMBAR}};
+@define-color warning_fg_color {{AMBAR_TEXTO}};
+@define-color error_bg_color {{CORAL}};
+@define-color error_fg_color {{CORAL_TEXTO}};
+@define-color window_bg_color {{JANELA}};
+@define-color window_fg_color {{TEXTO}};
+@define-color view_bg_color {{CONTEUDO}};
+@define-color view_fg_color {{TEXTO}};
+@define-color headerbar_bg_color {{BARRA_TITULO}};
+@define-color headerbar_fg_color {{TEXTO}};
+@define-color headerbar_backdrop_color {{BARRA_TITULO_SEM_FOCO}};
+@define-color sidebar_bg_color {{BARRA_LATERAL}};
+@define-color sidebar_fg_color {{TEXTO}};
+@define-color sidebar_backdrop_color {{BARRA_LATERAL_SEM_FOCO}};
+@define-color secondary_sidebar_bg_color {{BARRA_LATERAL_SECUNDARIA}};
+@define-color secondary_sidebar_fg_color {{TEXTO}};
+@define-color dialog_bg_color {{DIALOGO}};
+@define-color dialog_fg_color {{TEXTO}};
+@define-color popover_bg_color {{POPOVER}};
+@define-color popover_fg_color {{TEXTO}};
+@define-color thumbnail_bg_color {{MINIATURA}};
+@define-color thumbnail_fg_color {{TEXTO}};
+@define-color card_bg_color rgba(255, 255, 255, 0.06);
+@define-color card_fg_color {{TEXTO}};
+
+:root {
+  --accent-bg-color: {{ACCENT}};
+  --accent-fg-color: {{ACCENT_TEXTO}};
+  --accent-color: {{ACCENT_DESTAQUE}};
+  --destructive-bg-color: {{CORAL}};
+  --destructive-fg-color: {{CORAL_TEXTO}};
+  --destructive-color: {{CORAL_DESTAQUE}};
+  --success-bg-color: {{MENTA}};
+  --success-fg-color: {{MENTA_TEXTO}};
+  --success-color: {{MENTA}};
+  --warning-bg-color: {{AMBAR}};
+  --warning-fg-color: {{AMBAR_TEXTO}};
+  --warning-color: {{AMBAR}};
+  --error-bg-color: {{CORAL}};
+  --error-fg-color: {{CORAL_TEXTO}};
+  --error-color: {{CORAL_DESTAQUE}};
+
+  --window-bg-color: {{JANELA}};
+  --window-fg-color: {{TEXTO}};
+  --view-bg-color: {{CONTEUDO}};
+  --view-fg-color: {{TEXTO}};
+  --headerbar-bg-color: {{BARRA_TITULO}};
+  --headerbar-fg-color: {{TEXTO}};
+  --headerbar-backdrop-color: {{BARRA_TITULO_SEM_FOCO}};
+  --headerbar-border-color: {{TEXTO}};
+  --headerbar-shade-color: rgba(0, 0, 0, 0.36);
+  --headerbar-darker-shade-color: rgba(0, 0, 0, 0.9);
+  --sidebar-bg-color: {{BARRA_LATERAL}};
+  --sidebar-fg-color: {{TEXTO}};
+  --sidebar-backdrop-color: {{BARRA_LATERAL_SEM_FOCO}};
+  --sidebar-border-color: rgba(0, 0, 0, 0.36);
+  --sidebar-shade-color: rgba(0, 0, 0, 0.25);
+  --secondary-sidebar-bg-color: {{BARRA_LATERAL_SECUNDARIA}};
+  --secondary-sidebar-fg-color: {{TEXTO}};
+  --secondary-sidebar-backdrop-color: {{BARRA_LATERAL_SECUNDARIA}};
+  --card-bg-color: rgba(255, 255, 255, 0.06);
+  --card-fg-color: {{TEXTO}};
+  --card-shade-color: rgba(0, 0, 0, 0.36);
+  --dialog-bg-color: {{DIALOGO}};
+  --dialog-fg-color: {{TEXTO}};
+  --popover-bg-color: {{POPOVER}};
+  --popover-fg-color: {{TEXTO}};
+  --popover-shade-color: rgba(0, 0, 0, 0.25);
+  --thumbnail-bg-color: {{MINIATURA}};
+  --thumbnail-fg-color: {{TEXTO}};
+  --shade-color: rgba(0, 0, 0, 0.25);
+  --scrollbar-outline-color: rgba(0, 0, 0, 0.95);
+
+  /* cantos arredondados */
+  --window-radius: {{RAIO_JANELA}}px;
+}
+
+{{BOTOES}}

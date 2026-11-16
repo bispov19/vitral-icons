@@ -15,6 +15,11 @@ grafite_base = "#151517"
 
 # ── Ícones ────────────────────────────────────────────────────────────────
 [icones]
+# Tamanho do tile no quadro de 128 (112 = margem de 8; 120 = margem de 4, o
+# tamanho dos ícones maiores do Conflux) e a escala dos ícones avulsos (pastas,
+# documentos), para a pasta ficar com ~116 de largura como no Conflux.
+tile_lado = 120
+avulsos_escala = 1.07
 # Peso visual: fração da área do tile ocupada pela silhueta do logo
 # (alvo de 38 a 42%) e limite do maior lado do logo, em fração do tile.
 area_alvo = 0.40
@@ -67,3 +72,31 @@ texto = "#9A9AA2"
 codigo = "#4A4A52"
 compactado = "#B8875A"
 executavel = "#6C7CF2"
+
+# ── GTK 3 e GTK 4 / libadwaita ───────────────────────────────────────────
+[gtk]
+# Destaque (accent): nome de uma cor da paleta ou um hex. O texto sobre ele
+# é escolhido automaticamente para passar no contraste AA (4,5:1).
+accent = "menta"
+raio_janela = 14
+
+# Superfícies grafite, do fundo mais escuro ao mais claro.
+[gtk.superficies]
+conteudo = "#19191C"            # listas, editores de texto
+janela = "#1E1E21"
+barra_lateral_secundaria = "#1F1F22"
+barra_lateral = "#232326"
+barra_titulo_sem_foco = "#212124"
+barra_titulo = "#28282B"
+dialogo = "#2A2A2E"
+popover = "#2C2C30"
+miniatura = "#303034"
+texto = "#F2F2F5"
+
+# Botões de fechar, minimizar e maximizar (círculos à esquerda).
+[gtk.botoes_janela]
+tamanho = 14
+espaco = 8
+borda_mais_escura = 0.22      # quanto a borda de 1px escurece a cor do botão
+glifo = "rgba(0, 0, 0, 0.6)"  # cor do ✕ − ⤢, visível só com o mouse sobre o grupo
+sem_foco = "#48484D"          # círculos da janela sem foco
