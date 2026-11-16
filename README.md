@@ -80,3 +80,7 @@ systemctl --user disable --now brisa-icons.path brisa-icons.service
 rm ~/.config/systemd/user/brisa-icons.{path,service}
 rm -r ~/.local/share/icons/Brisa
 ```
+
+## Licença
+
+MIT, veja [LICENSE](LICENSE).
