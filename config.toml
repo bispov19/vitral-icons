@@ -1,0 +1,69 @@
+# Configuração do tema Brisa.
+# Tudo o que é ajustável (paleta, proporções, intensidades) mora aqui; os
+# geradores de cada parte (icons/, gtk/, shell/) leem este arquivo.
+
+[tema]
+nome = "Brisa"
+
+[paleta]
+coral = "#F0685A"
+ambar = "#F5B53F"
+menta = "#4FC7A2"
+# Superfícies grafite (tile dos ícones e, nas próximas fases, janelas e Shell)
+grafite_topo = "#2B2B2E"
+grafite_base = "#151517"
+
+# ── Ícones ────────────────────────────────────────────────────────────────
+[icones]
+# Peso visual: fração da área do tile ocupada pela silhueta do logo
+# (alvo de 38 a 42%) e limite do maior lado do logo, em fração do tile.
+area_alvo = 0.40
+lado_maximo = 0.84
+# Glifos que não passam pela normalização de área (layout fixo).
+sem_normalizar = ["calendario"]
+# TINT_RIM: quanto a borda de luz do tile puxa para a cor principal do logo
+# (0 = borda branca, 1 = borda na cor do logo).
+tint_rim = 0.35
+# TRASH_STYLE: "tile" (lixeira prateada no tile escuro) ou "avulsa" (sem tile).
+trash_style = "tile"
+# Tamanhos fixos gerados em PNG (além do scalable).
+tamanhos = [16, 24, 32, 48, 64, 128, 256]
+# A partir de qual tamanho o scalable passa a valer (abaixo usam-se os PNGs).
+scalable_min = 96
+# Tamanho máximo dos PNGs embutidos nos SVGs (logos originais em bitmap).
+max_png_embutido = 256
+
+# Aparência do tile nos tamanhos grandes (>= 48 px).
+[icones.tile]
+borda_opacidade = 0.24      # borda interna de 1px
+borda_px = 1.0              # espessura da borda, em pixels do tamanho final
+reflexo_opacidade = 0.12    # reflexo largo na metade de cima
+brilho_opacidade = 0.70     # brilho fino na borda de cima
+sombra_interna = 0.45
+sombra_contato = 0.30       # sombra de contato na base
+sombra_logo = 0.50          # sombra projetada sob o logo
+
+# Nos tamanhos pequenos (<= 32 px) a borda engrossa e o reflexo simplifica.
+[icones.tile_pequeno]
+ate_px = 32
+borda_opacidade = 0.42
+borda_px = 1.0
+reflexo_opacidade = 0.0
+brilho_opacidade = 0.55
+sombra_interna = 0.0
+sombra_contato = 0.0
+sombra_logo = 0.0
+
+# Cor da etiqueta de cada categoria de tipo de arquivo.
+[icones.etiquetas]
+documento = "#5B8DEF"
+planilha = "#4FC7A2"
+apresentacao = "#F5B53F"
+pdf = "#F0685A"
+imagem = "#B57CF0"
+audio = "#F06A9B"
+video = "#36B5D8"
+texto = "#9A9AA2"
+codigo = "#4A4A52"
+compactado = "#B8875A"
+executavel = "#6C7CF2"

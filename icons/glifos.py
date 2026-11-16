@@ -381,20 +381,7 @@ DESENHOS = {
     "ajuda": (SC(64, 64, 26, "branco", 17)
               + "".join(S(arco(64, 64, 26, a - 16, a + 16), "coral", 17, BUTT) for a in (45, 135, 225, 315))),
 
-    # Pastas e lugares
-    "pasta": pasta(),
-    "pasta-documentos": pasta(S("M53 64 H75 M53 73 H75 M53 82 H68", E, 5)),
-    "pasta-downloads": pasta(S("M64 61 V83 M55 75 L64 84 L73 75", E, 5)),
-    "pasta-musica": pasta(S("M68 82 V62 H77", E, 5) + FC(62, 82, 5.5, E)),
-    "pasta-imagens": pasta(F("M50 85 L60 70 L70 85 Z", E) + FC(74, 65, 4, E)),
-    "pasta-videos": pasta(FS("M58 63 L74 73 L58 83 Z", E, 3)),
-    "pasta-modelos": pasta(S("M56 62 H67 L73 68 V85 H56 Z", E, 4.5)),
-    "pasta-publica": pasta(FC(64, 66, 5.5, E) + S("M54 85 A10 9 0 0 1 74 85", E, 5)),
-    "pasta-projetos": pasta(S("M57 64 L50 73 L57 82 M71 64 L78 73 L71 82", E, 5)),
-    "pasta-remota": pasta(S("M52 72 Q64 62 76 72 M57 79 Q64 73 71 79", E, 4.5) + FC(64, 85, 3.5, E)),
-    "pasta-soltar": pasta(S("M64 63 V83 M54 73 H74", E, 5)),
-    "pasta-pessoal": pasta(S("M52 75 L64 63 L76 75 M56 71 V85 H72 V71", E, 4.5)),
-    "pasta-area-de-trabalho": pasta(S("M52 63 H76 V78 H52 Z M64 78 V84 M58 85 H70", E, 4)),
+    # Lugares
     "favoritos": (FS("M43 28 H85 Q89 28 89 32 V99 L64 82 L39 99 V32 Q39 28 43 28 Z", "coral", 3)
                   + F("M43 28 H85 Q89 28 89 32 V40 H39 V32 Q39 28 43 28 Z", "#FFFFFF", LUZ)),
     "servidor": drive(30, 30) + drive(68, 30, "ambar"),
@@ -467,6 +454,130 @@ DESENHOS = {
     "monitor": tela(27, 30, 74, 52),
 }
 
+
+
+# ── Pastas (estilo macOS, avulsas, na cor do app Arquivos) ────────────────
+PASTA_TRAS = "M10 31 Q10 22 19 22 H45 Q50 22 53 26 L57 31 H109 Q118 31 118 40 V99 Q118 108 109 108 H19 Q10 108 10 99 Z"
+PASTA_FRENTE_MAC = "M10 47 Q10 39 18 39 H110 Q118 39 118 47 V99 Q118 108 109 108 H19 Q10 108 10 99 Z"
+PASTA_FRENTE_ABERTA = "M18 54 H115 Q123 54 121.5 62 L113.5 101 Q112 108 104 108 H19 Q10 108 10 99 V62 Q10 54 18 54 Z"
+
+# Emblemas das pastas especiais: função da cor, centrados em (64, 74).
+EMBLEMAS = {
+    "documentos": lambda c: S("M49 63 H79 M49 73 H79 M49 83 H70", c, 6),
+    "downloads": lambda c: S("M64 57 V87 M52 76 L64 88 L76 76", c, 6),
+    "imagens": lambda c: FS("M45 88 L57 69 L69 88 Z", c, 3) + FS("M62 88 L72 76 L83 88 Z", c, 3) + FC(77, 63, 5, c),
+    "musica": lambda c: S("M71 84 V60 H82", c, 6) + FC(64, 84, 7.5, c),
+    "videos": lambda c: FS("M56 60 L77 74 L56 88 Z", c, 4),
+    "modelos": lambda c: S("M54 58 H69 L76 65 V90 H54 Z M69 58 V65 H76", c, 5),
+    "publica": lambda c: FC(64, 64, 7, c) + S("M50 90 A14 13 0 0 1 78 90", c, 6),
+    "remota": lambda c: S("M47 73 Q64 58 81 73 M55 81 Q64 73 73 81", c, 5.5) + FC(64, 89, 4, c),
+    "projetos": lambda c: S("M56 63 L47 74 L56 85 M72 63 L81 74 L72 85", c, 6),
+    "pessoal": lambda c: S("M48 76 L64 61 L80 76 M53 71 V89 H75 V71", c, 5.5),
+    "area-de-trabalho": lambda c: S("M47 62 H81 V82 H47 Z M64 82 V89 M55 89 H73", c, 5),
+}
+
+
+def pasta_mac(emblema=None, aberta=False):
+    s = F(PASTA_TRAS, "ambar-escuro")
+    if aberta:
+        s += FR(22, 30, 84, 44, 3, "#F2F2F5") + FR(28, 25, 72, 44, 3, "branco")
+    s += F(PASTA_FRENTE_ABERTA if aberta else PASTA_FRENTE_MAC, "ambar")
+    s += S("M16 57.5 H116" if aberta else "M15 42.5 H113", "#FFFFFF", 1.5, ' stroke-opacity="0.55"')
+    if emblema:
+        desenho = EMBLEMAS[emblema]
+        # Leve gravação: o emblema escuro 1.5px abaixo e o branco por cima.
+        s += G(desenho("ambar-escuro"), "translate(0 1.5)") + desenho("#FFFFFF")
+    return s
+
+
+DESENHOS.update({
+    "pasta": pasta_mac(),
+    "pasta-aberta": pasta_mac(aberta=True),
+    **{f"pasta-{nome}": pasta_mac(nome) for nome in EMBLEMAS},
+})
+
+
+# ── Tipos de arquivo: folha dobrada com etiqueta colorida ─────────────────
+FOLHA = "M32 10 H80 L102 32 V112 Q102 118 96 118 H32 Q26 118 26 112 V16 Q26 10 32 10 Z"
+DOBRA = "M80 10 V26 Q80 32 86 32 H102 Z"
+
+# categoria: (símbolo em função da cor, texto da etiqueta)
+CATEGORIAS = {
+    "documento": (lambda c: S("M40 44 H74 M40 54 H88 M40 64 H88 M40 74 H80", c, 4), "DOC"),
+    "planilha": (lambda c: S("M40 42 H88 V80 H40 Z M56 42 V80 M72 42 V80 M40 55 H88 M40 67 H88", c, 3), "XLS"),
+    "apresentacao": (lambda c: S("M40 79 H88", c, 3) + FR(45, 61, 9, 15, 2, c) + FR(59.5, 52, 9, 24, 2, c)
+                     + FR(74, 43, 9, 33, 2, c), "PPT"),
+    "pdf": (lambda c: S("M40 44 H70 M40 54 H88 M40 64 H88", c, 4) + S("M40 76 Q50 68 58 76 T76 74", c, 3.5), "PDF"),
+    "imagem": (lambda c: FS("M40 79 L56 55 L70 79 Z", c, 3) + FS("M60 79 L73 63 L88 79 Z", c, 3)
+               + FC(78, 48, 6, c), "IMG"),
+    "audio": (lambda c: S("M70 75 V46 L85 50", c, 5) + FC(62, 75, 8, c), "MP3"),
+    "video": (lambda c: FS("M54 45 L81 61 L54 77 Z", c, 4), "MP4"),
+    "texto": (lambda c: S("M40 44 H80 M40 54 H88 M40 64 H88 M40 74 H70", c, 4), "TXT"),
+    "codigo": (lambda c: S("M53 47 L41 61 L53 75 M75 47 L87 61 L75 75 M68 43 L60 79", c, 4.5), "&lt;/&gt;"),
+    "compactado": (lambda c: "".join(FR(58 if i % 2 == 0 else 64, 12 + i * 6, 6, 4, 1, c) for i in range(10))
+                   + FR(56, 72, 16, 12, 3, c) + FR(61, 75, 6, 6, 1.5, "branco"), "ZIP"),
+    "executavel": (lambda c: F(engrenagem(64, 60, 17, 13, 8, 10, 7), c) + FC(64, 60, 5.5, "branco"), "EXE"),
+}
+
+
+def documento(categoria, cor):
+    simbolo, rotulo = CATEGORIAS[categoria]
+    return (F(FOLHA, "branco") + S(FOLHA, "#000000", 2, ' stroke-opacity="0.24"')
+            + F(DOBRA, "#D3D3D9") + simbolo(cor)
+            + FR(34, 88, 60, 20, 6, cor)
+            + T(64, 102.5, rotulo, 12.5, "#FFFFFF", FONTE_UI, "700"))
+
+
+# Nomes de ícone de cada categoria: todos os genéricos do Adwaita e os
+# específicos mais comuns (o GNOME procura o específico antes do genérico).
+MIMETIPOS = {
+    "documento": ["x-office-document", "x-office-document-template", "application-vnd.oasis.opendocument.text",
+                  "application-msword", "application-vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  "application-rtf", "x-office-addressbook", "font-x-generic", "application-certificate"],
+    "planilha": ["x-office-spreadsheet", "x-office-spreadsheet-template", "application-vnd.oasis.opendocument.spreadsheet",
+                 "application-vnd.ms-excel", "application-vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                 "text-csv"],
+    "apresentacao": ["x-office-presentation", "x-office-presentation-template",
+                     "application-vnd.oasis.opendocument.presentation", "application-vnd.ms-powerpoint",
+                     "application-vnd.openxmlformats-officedocument.presentationml.presentation"],
+    "pdf": ["application-pdf", "application-epub+zip"],
+    "imagem": ["image-x-generic", "x-office-drawing", "image-svg+xml", "model"],
+    "audio": ["audio-x-generic"],
+    "video": ["video-x-generic"],
+    "texto": ["text-x-generic", "text-x-preview", "text-markdown", "application-x-generic", "inode-symlink"],
+    "codigo": ["text-x-script", "text-html", "text-css", "application-javascript", "application-json",
+               "application-xml", "text-x-python", "text-x-csrc", "text-x-chdr", "text-x-c++src", "text-x-java",
+               "text-rust", "text-x-go", "application-x-shellscript", "text-x-makefile"],
+    "compactado": ["package-x-generic", "application-zip", "application-x-compressed-tar", "application-x-7z-compressed",
+                   "application-x-rar", "application-x-xz", "application-gzip", "application-x-rpm",
+                   "application-vnd.flatpak", "application-vnd.flatpak.ref", "x-package-repository"],
+    "executavel": ["application-x-executable", "application-x-sharedlib", "application-x-addon",
+                   "application-x-firmware", "application-x-msdownload", "application-x-appimage"],
+}
+
+
+# ── Ícones simbólicos próprios (botões de janela) ─────────────────────────
+# Formas cheias num quadro 16x16: o GTK recolore o preenchimento.
+def _simbolico(d, regra="nonzero"):
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">'
+            f'<path d="{d}" fill="#2e3436" fill-rule="{regra}"/></svg>\n')
+
+
+SIMBOLICOS = {
+    # ✕ : dois traços diagonais de 1.6
+    "window-close-symbolic": _simbolico(
+        "M4.13 3 L8 6.87 L11.87 3 L13 4.13 L9.13 8 L13 11.87 L11.87 13 L8 9.13 L4.13 13 L3 11.87 L6.87 8 L3 4.13 Z"),
+    # − : traço horizontal
+    "window-minimize-symbolic": _simbolico(
+        "M3.8 7.2 H12.2 A0.8 0.8 0 0 1 12.2 8.8 H3.8 A0.8 0.8 0 0 1 3.8 7.2 Z"),
+    # ⤢ : duas setas diagonais, para fora
+    "window-maximize-symbolic": _simbolico(
+        "M13 3 V8.2 L11.1 6.3 L8.9 8.5 L7.5 7.1 L9.7 4.9 L7.8 3 Z "
+        "M3 13 V7.8 L4.9 9.7 L7.1 7.5 L8.5 8.9 L6.3 11.1 L8.2 13 Z"),
+    # restaurar: dois quadrados sobrepostos
+    "window-restore-symbolic": _simbolico(
+        "M3 6 H10 V13 H3 Z M4.5 7.5 V11.5 H8.5 V7.5 Z M6 3 H13 V10 H11.4 V4.6 H6 Z", "evenodd"),
+}
 
 # ── Mapa de apps ──────────────────────────────────────────────────────────
 # (rótulo, seções, fonte, ids .desktop, nomes extras de ícone)
@@ -546,6 +657,9 @@ APPS = [
     ("LibreOffice Calc", ["Escritório"], "original", ["libreoffice-calc.desktop"], []),
     ("LibreOffice Impress", ["Escritório"], "original", ["libreoffice-impress.desktop"], []),
     ("LibreOffice", ["Escritório"], "original", ["libreoffice-startcenter.desktop"], []),
+    ("LibreOffice Draw", ["Escritório"], "original", ["libreoffice-draw.desktop", "icone:libreoffice-draw"], []),
+    ("LibreOffice Math", ["Escritório"], "original", ["libreoffice-math.desktop", "icone:libreoffice-math"], []),
+    ("LibreOffice Base", ["Escritório"], "original", ["libreoffice-base.desktop", "icone:libreoffice-base"], []),
 
     # Outros apps visíveis
     ("VLC", ["Outros apps"], "original", ["vlc.desktop"], []),
@@ -556,24 +670,24 @@ APPS = [
 # (rótulo, seção, fonte, nomes de ícone, contexto/pasta em scalable/)
 # Nomes iguais aos do Adwaita, para substituí-lo onde o GNOME os usa.
 ICONES_FIXOS = [
-    ("Pasta", "Lugares", "desenho:pasta", ["folder"], "places"),
-    ("Documentos", "Lugares", "desenho:pasta-documentos", ["folder-documents"], "places"),
-    ("Downloads", "Lugares", "desenho:pasta-downloads", ["folder-download"], "places"),
-    ("Músicas", "Lugares", "desenho:pasta-musica", ["folder-music"], "places"),
-    ("Imagens", "Lugares", "desenho:pasta-imagens", ["folder-pictures"], "places"),
-    ("Vídeos", "Lugares", "desenho:pasta-videos", ["folder-videos"], "places"),
-    ("Modelos", "Lugares", "desenho:pasta-modelos", ["folder-templates"], "places"),
-    ("Público", "Lugares", "desenho:pasta-publica", ["folder-publicshare"], "places"),
-    ("Projetos", "Lugares", "desenho:pasta-projetos", ["folder-projects"], "places"),
-    ("Pasta remota", "Lugares", "desenho:pasta-remota", ["folder-remote"], "places"),
-    ("Soltar na pasta", "Lugares", "desenho:pasta-soltar", ["folder-drag-accept"], "places"),
-    ("Pasta pessoal", "Lugares", "desenho:pasta-pessoal", ["user-home"], "places"),
-    ("Área de trabalho", "Lugares", "desenho:pasta-area-de-trabalho", ["user-desktop"], "places"),
+    ("Pasta", "Pastas", "solto:pasta", ["folder", "inode-directory"], "places"),
+    ("Pasta aberta", "Pastas", "solto:pasta-aberta", ["folder-open", "folder-drag-accept"], "places"),
+    ("Documentos", "Pastas", "solto:pasta-documentos", ["folder-documents"], "places"),
+    ("Downloads", "Pastas", "solto:pasta-downloads", ["folder-download"], "places"),
+    ("Imagens", "Pastas", "solto:pasta-imagens", ["folder-pictures"], "places"),
+    ("Músicas", "Pastas", "solto:pasta-musica", ["folder-music"], "places"),
+    ("Vídeos", "Pastas", "solto:pasta-videos", ["folder-videos"], "places"),
+    ("Modelos", "Pastas", "solto:pasta-modelos", ["folder-templates"], "places"),
+    ("Público", "Pastas", "solto:pasta-publica", ["folder-publicshare"], "places"),
+    ("Pasta remota", "Pastas", "solto:pasta-remota", ["folder-remote"], "places"),
+    ("Projetos", "Pastas", "solto:pasta-projetos", ["folder-projects"], "places"),
+    ("Pasta pessoal", "Pastas", "solto:pasta-pessoal", ["user-home"], "places"),
+    ("Área de trabalho", "Pastas", "solto:pasta-area-de-trabalho", ["user-desktop"], "places"),
     ("Favoritos", "Lugares", "desenho:favoritos", ["user-bookmarks"], "places"),
     ("Servidor", "Lugares", "desenho:servidor", ["network-server"], "places"),
     ("Rede", "Lugares", "desenho:rede", ["network-workgroup"], "places"),
-    ("Lixeira", "Lugares", "solto:lixeira", ["user-trash"], "places"),
-    ("Lixeira cheia", "Lugares", "solto:lixeira-cheia", ["user-trash-full"], "places"),
+    ("Lixeira", "Lugares", "lixeira:lixeira", ["user-trash"], "places"),
+    ("Lixeira cheia", "Lugares", "lixeira:lixeira-cheia", ["user-trash-full"], "places"),
 
     ("Fones", "Dispositivos", "desenho:fones", ["audio-headphones"], "devices"),
     ("Headset", "Dispositivos", "desenho:headset", ["audio-headset"], "devices"),
