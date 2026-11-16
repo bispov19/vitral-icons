@@ -12,6 +12,7 @@
     Desenhos próprios pintam com fill/stroke="url(#<cor>)". Cores:
       branco prata grafite grafite-escuro
       ambar ambar-escuro coral coral-escuro menta menta-escuro
+      azul azul-escuro (pasta do app Arquivos)
     "tinta" (glifo direto sobre o tile: claro na variante escura, grafite na
     clara) e "fundo", que é o próprio gradiente do tile (para partes vazadas).
     Tile, borda, branco e tinta mudam com a variante (escura/clara).
@@ -74,7 +75,9 @@
     <linearGradient id="coral" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{CORAL_CLARO}}"/><stop offset="0.5" stop-color="{{CORAL}}"/><stop offset="1" stop-color="{{CORAL_FUNDO}}"/></linearGradient>
     <linearGradient id="coral-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{CORAL_ESCURO}}"/><stop offset="1" stop-color="{{CORAL_ESCURO_FUNDO}}"/></linearGradient>
     <linearGradient id="menta" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{MENTA_CLARO}}"/><stop offset="0.5" stop-color="{{MENTA}}"/><stop offset="1" stop-color="{{MENTA_FUNDO}}"/></linearGradient>
-    <linearGradient id="menta-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{MENTA_ESCURO}}"/><stop offset="1" stop-color="{{MENTA_ESCURO_FUNDO}}"/></linearGradient>{{DEFS_EXTRA}}
+    <linearGradient id="menta-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{{MENTA_ESCURO}}"/><stop offset="1" stop-color="{{MENTA_ESCURO_FUNDO}}"/></linearGradient>
+    <linearGradient id="azul" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0.28" stop-color="#0AAAFF"/><stop offset="0.55" stop-color="#0497FA"/><stop offset="0.93" stop-color="#026CEA"/></linearGradient>
+    <linearGradient id="azul-escuro" x1="0" y1="26" x2="0" y2="102" gradientUnits="userSpaceOnUse"><stop offset="0.08" stop-color="#0A9EFA"/><stop offset="0.42" stop-color="#0388EF"/></linearGradient>{{DEFS_EXTRA}}
   </defs>
 
   <!-- Escala geral: tile_lado/112 para os ícones com tile; avulsos_escala para os avulsos. -->

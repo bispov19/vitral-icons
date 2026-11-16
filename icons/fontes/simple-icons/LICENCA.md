@@ -2,6 +2,8 @@
 
 Arquivos SVG copiados de [Simple Icons](https://simpleicons.org) v16.38.0
 (pacote npm `simple-icons`), com a cor oficial de cada marca aplicada pelo gerador.
+O Brave sai na versão colorida (escudo em gradiente laranja com o leão branco):
+o gerador preenche as partes vazadas do SVG (`SIMPLE_ICONS_COLORIDOS` em `glifos.py`).
 
 | Arquivo | Marca | Cor | Licença do SVG |
 | --- | --- | --- | --- |

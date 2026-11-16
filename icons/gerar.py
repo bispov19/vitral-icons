@@ -89,7 +89,8 @@ PIXMAPS = Path("/usr/share/pixmaps")
 GENERICO = Path("/usr/share/icons/Adwaita/scalable/mimetypes/application-x-executable.svg")
 
 sys.path.insert(0, str(AQUI))
-from glifos import APPS, DESENHOS, ICONES_FIXOS, MIMETIPOS, SIMPLE_ICONS, documento  # noqa: E402
+from glifos import (APPS, DESENHOS, ICONES_FIXOS, MIMETIPOS, SIMPLE_ICONS,  # noqa: E402
+                    SIMPLE_ICONS_COLORIDOS, documento)
 
 SECOES = ["Dock", "Grade", "Sistema", "Utilitários", "Escritório", "Outros apps",
           "Automáticos", "Lugares", "Pastas", "Tipos de arquivo", "Dispositivos"]
@@ -481,12 +482,38 @@ def logo_original(arq, sem_fundo=False):
     return logo_de_png(img)
 
 
+def subcaminhos(d):
+    """Separa um path em subcaminhos independentes. Um "m" relativo logo após
+    "z" é relativo ao início do subcaminho anterior; vira "M" absoluto."""
+    pedacos = [p.strip() for p in re.split(r"(?<=[zZ])", d) if p.strip()]
+    saida, inicio = [], (0.0, 0.0)
+    for p in pedacos:
+        m = re.match(r"([mM])\s*(-?[\d.]+(?:e-?\d+)?)[\s,]*(-?[\d.]+(?:e-?\d+)?)", p)
+        x, y = float(m.group(2)), float(m.group(3))
+        if m.group(1) == "m" and saida:
+            x, y = inicio[0] + x, inicio[1] + y
+        inicio = (x, y)
+        saida.append(f"M{x:.4f} {y:.4f}" + p[m.end():])
+    return saida
+
+
 def logo_simple_icons(slug):
     cor, _ = SIMPLE_ICONS[slug]
     texto = (SIMPLE_ICONS_DIR / f"{slug}.svg").read_text()
     d = re.search(r'<path d="([^"]+)"', texto).group(1)
+    colorido = SIMPLE_ICONS_COLORIDOS.get(slug)
+    if colorido:
+        (g0, g1), (v0, v1) = colorido["gradiente"], colorido["vazados"]
+        vazados = "".join(f'<path fill="url(#v)" d="{p}"/>' for p in subcaminhos(d)[1:])
+        corpo = (f'<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">'
+                 f'<stop offset="0" stop-color="{g0}"/><stop offset="1" stop-color="{g1}"/></linearGradient>'
+                 f'<linearGradient id="v" x1="0" y1="3" x2="0" y2="19" gradientUnits="userSpaceOnUse">'
+                 f'<stop offset="0" stop-color="{v0}"/><stop offset="1" stop-color="{v1}"/></linearGradient></defs>'
+                 f'<path fill="url(#g)" d="{d}"/>{vazados}')
+    else:
+        corpo = f'<path fill="{cor}" d="{d}"/>'
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">'
-           f'<path fill="{cor}" d="{d}"/></svg>')
+           f'{corpo}</svg>')
     return logo_de_svg(svg.encode())
 
 

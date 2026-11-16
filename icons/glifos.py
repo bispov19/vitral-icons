@@ -28,6 +28,13 @@ SIMPLE_ICONS = {
     "whatsapp": ("#25D366", "CC0-1.0"),
 }
 
+# Versão colorida de alguns logos do Simple Icons, como o app mostra de fato:
+# o logo vira um gradiente da marca e as partes vazadas do SVG (o leão do
+# Brave) são preenchidas com outro gradiente, em vez de deixar ver o tile.
+SIMPLE_ICONS_COLORIDOS = {
+    "brave": {"gradiente": ("#FF6A1A", "#FF2A00"), "vazados": ("#FFFFFF", "#E2E2E6")},
+}
+
 
 # ── Primitivas ────────────────────────────────────────────────────────────
 def _n(v):
@@ -121,14 +128,11 @@ def engrenagem(cx, cy, r_ext, r_int, dentes, meio_int, meio_ext):
 # ── Peças reaproveitadas ──────────────────────────────────────────────────
 PASTA_FUNDO = "M29 40 Q29 32 37 32 H53 Q57 32 60 35 L64 39 H91 Q99 39 99 47 V58 H29 Z"
 PASTA_FRENTE = "M29 54 Q29 47 36 47 H92 Q99 47 99 54 V89 Q99 97 91 97 H37 Q29 97 29 89 Z"
-E = "ambar-escuro"   # cor dos emblemas "gravados" na pasta
-
-
-def pasta(emblema="", papel=False):
-    s = F(PASTA_FUNDO, "ambar-escuro")
+def pasta(emblema="", papel=False, cor="ambar"):
+    s = F(PASTA_FUNDO, f"{cor}-escuro")
     if papel:
         s += FR(35, 40, 58, 22, 3, "branco")
-    s += F(PASTA_FRENTE, "ambar")
+    s += F(PASTA_FRENTE, cor)
     s += S("M35 51.5 H93", "#FFFFFF", 1.5, ' stroke-opacity="0.55"')
     return s + emblema
 
@@ -235,7 +239,7 @@ def lixeira(cheia=False):
 # ── Desenhos próprios ─────────────────────────────────────────────────────
 DESENHOS = {
     # Apps sem logo de marca
-    "arquivos": pasta(papel=True),
+    "arquivos": pasta(papel=True, cor="azul"),  # azul da pasta do app Arquivos do iOS
 
     "terminal": (FR(29, 32, 70, 64, 12, "grafite")
                  + FR(33, 43, 62, 49, 7, "grafite-escuro")
@@ -458,7 +462,7 @@ DESENHOS = {
 
 
 
-# ── Pastas (estilo macOS, avulsas, na cor do app Arquivos) ────────────────
+# ── Pastas (estilo macOS, avulsas, no azul do app Arquivos) ───────────────
 PASTA_TRAS = "M10 31 Q10 22 19 22 H45 Q50 22 53 26 L57 31 H109 Q118 31 118 40 V99 Q118 108 109 108 H19 Q10 108 10 99 Z"
 PASTA_FRENTE_MAC = "M10 47 Q10 39 18 39 H110 Q118 39 118 47 V99 Q118 108 109 108 H19 Q10 108 10 99 Z"
 PASTA_FRENTE_ABERTA = "M18 54 H115 Q123 54 121.5 62 L113.5 101 Q112 108 104 108 H19 Q10 108 10 99 V62 Q10 54 18 54 Z"
@@ -479,16 +483,19 @@ EMBLEMAS = {
 }
 
 
+PASTA_GRAVACAO = "#0459C4"   # sombra azul-escura dos emblemas "gravados"
+
+
 def pasta_mac(emblema=None, aberta=False):
-    s = F(PASTA_TRAS, "ambar-escuro")
+    s = F(PASTA_TRAS, "azul-escuro")
     if aberta:
         s += FR(22, 30, 84, 44, 3, "#F2F2F5") + FR(28, 25, 72, 44, 3, "branco")
-    s += F(PASTA_FRENTE_ABERTA if aberta else PASTA_FRENTE_MAC, "ambar")
+    s += F(PASTA_FRENTE_ABERTA if aberta else PASTA_FRENTE_MAC, "azul")
     s += S("M16 57.5 H116" if aberta else "M15 42.5 H113", "#FFFFFF", 1.5, ' stroke-opacity="0.55"')
     if emblema:
         desenho = EMBLEMAS[emblema]
         # Leve gravação: o emblema escuro 1.5px abaixo e o branco por cima.
-        s += G(desenho("ambar-escuro"), "translate(0 1.5)") + desenho("#FFFFFF")
+        s += G(desenho(PASTA_GRAVACAO), "translate(0 1.5)") + desenho("#FFFFFF")
     return s
 
 
