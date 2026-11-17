@@ -19,8 +19,8 @@ area_alvo = 0.40
 lado_maximo = 0.84
 # Glifos que não passam pela normalização de área (layout fixo).
 sem_normalizar = ["calendario"]
-# TRASH_STYLE: "tile" (lixeira prateada no tile) ou "avulsa" (sem tile).
-trash_style = "tile"
+# TRASH_STYLE: "avulsa" (cesto fosco solto, como no dock do Mac) ou "tile" (o mesmo cesto no tile).
+trash_style = "avulsa"
 # Tamanhos fixos gerados em PNG (além do scalable).
 tamanhos = [16, 24, 32, 48, 64, 128, 256]
 # A partir de qual tamanho o scalable passa a valer (abaixo usam-se os PNGs).

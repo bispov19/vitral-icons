@@ -200,40 +200,125 @@ def calendario_hoje():
             + T(64, 103, str(hoje.day), 62, "tinta", FONTE_UI, "300"))
 
 
-# Lixeira "solta" (sem tile, como no dock do Mac): cesto cinza translúcido,
-# levemente afunilado, com frisos verticais; cheia, mostra papéis amassados.
-LIXEIRA_CORPO = "M24 31 Q24 26 29 26 H99 Q104 26 104 31 L98.5 108 Q97.5 117 88.5 117 H39.5 Q30.5 117 29.5 108 Z"
-LIXEIRA_DEFS = (
+# Lixeira no estilo do dock do Mac: cesto branco fosco e translúcido, visto um
+# pouco de cima (boca oval com aro grosso), afunilando até a base arredondada.
+# Cheia, mostra bolas de papel amassado (jornal e fotos) saindo pela boca e
+# vistas, esmaecidas, através da parede fosca.
+LX_BOCA = (64, 24, 39, 8.5)                     # cx, cy, rx, ry da boca
+LX_CORPO = ("M25 24 A39 8.5 0 0 0 103 24 L97.2 108 Q96.6 116.5 88 117.8 "
+            "Q64 121.5 40 117.8 Q31.4 116.5 30.8 108 Z")
+LX_DEFS = (
     '<defs>'
-    '<linearGradient id="cesto" x1="0" y1="26" x2="0" y2="117" gradientUnits="userSpaceOnUse">'
-    '<stop offset="0" stop-color="#F7F7FA"/><stop offset="1" stop-color="#B9B9C1"/></linearGradient>'
-    '<linearGradient id="cesto-lados" x1="24" y1="0" x2="104" y2="0" gradientUnits="userSpaceOnUse">'
-    '<stop offset="0" stop-color="#000" stop-opacity="0.16"/><stop offset="0.28" stop-color="#FFF" stop-opacity="0.10"/>'
-    '<stop offset="0.5" stop-color="#FFF" stop-opacity="0.22"/><stop offset="0.75" stop-color="#FFF" stop-opacity="0"/>'
-    '<stop offset="1" stop-color="#000" stop-opacity="0.18"/></linearGradient>'
+    # parede: mais opaca nas laterais (mais material visto de lado), mais
+    # translúcida no meio, com um realce vertical à esquerda
+    '<linearGradient id="lx-parede" x1="25" y1="0" x2="103" y2="0" gradientUnits="userSpaceOnUse">'
+    '<stop offset="0" stop-color="#E9EAEE" stop-opacity="0.98"/>'
+    '<stop offset="0.08" stop-color="#FFFFFF" stop-opacity="0.97"/>'
+    '<stop offset="0.2" stop-color="#FFFFFF" stop-opacity="0.82"/>'
+    '<stop offset="0.5" stop-color="#F7F8FA" stop-opacity="0.66"/>'
+    '<stop offset="0.82" stop-color="#F3F4F7" stop-opacity="0.74"/>'
+    '<stop offset="0.94" stop-color="#FFFFFF" stop-opacity="0.96"/>'
+    '<stop offset="1" stop-color="#E4E5EA" stop-opacity="0.98"/></linearGradient>'
+    # leve sombreado de cima para baixo (mais claro embaixo, como na foto)
+    '<linearGradient id="lx-luz" x1="0" y1="24" x2="0" y2="120" gradientUnits="userSpaceOnUse">'
+    '<stop offset="0" stop-color="#9DA1AB" stop-opacity="0.16"/>'
+    '<stop offset="0.35" stop-color="#FFFFFF" stop-opacity="0"/>'
+    '<stop offset="1" stop-color="#FFFFFF" stop-opacity="0.35"/></linearGradient>'
+    # interior visto pela boca
+    '<linearGradient id="lx-dentro" x1="0" y1="15.5" x2="0" y2="32.5" gradientUnits="userSpaceOnUse">'
+    '<stop offset="0" stop-color="#F2F3F6"/><stop offset="0.6" stop-color="#D5D8DE"/>'
+    '<stop offset="1" stop-color="#C4C7CF"/></linearGradient>'
+    f'<clipPath id="lx-corpo"><path d="{LX_CORPO}"/></clipPath>'
+    '<clipPath id="lx-boca"><path d="M22 0 H106 V24 H22 Z"/>'
+    '<ellipse cx="64" cy="24" rx="39" ry="8.5"/></clipPath>'
+    '<filter id="lx-fosco" x="-10%" y="-10%" width="120%" height="120%">'
+    '<feGaussianBlur stdDeviation="1.6"/></filter>'
     '</defs>')
 
 
-def lixeira(cheia=False):
-    s = LIXEIRA_DEFS + FR(26, 22, 76, 9, 4.5, "#76767D")          # boca (fundo escuro)
-    if cheia:
-        papeis = (("M31 30 L33 11 L46 6 L56 13 L54 30 Z", "#F4F4F7"),
-                  ("M47 30 L53 3 L72 8 L70 30 Z", "#4FC7A2"),
-                  ("M63 30 L68 8 L85 5 L89 30 Z", "#F5B53F"),
-                  ("M79 30 L88 10 L101 18 L97 30 Z", "#F0685A"),
-                  ("M39 30 L42 17 L52 21 L50 30 Z", "#C9C9CF"))
-        for d, cor in papeis:
-            s += FS(d, cor, 2.5)
-        s += S("M39 12 L47 22 M58 7 L62 24 M74 9 L77 25 M89 14 L92 25", "#FFFFFF", 1.5,
-               ' stroke-opacity="0.55"')
-    s += f'<path d="{LIXEIRA_CORPO}" fill="url(#cesto)" fill-opacity="0.96"/>'
-    s += f'<path d="{LIXEIRA_CORPO}" fill="url(#cesto-lados)"/>'
-    for i in range(7):                                             # frisos
-        xt, xb = 33 + i * 10.3, 37.5 + i * 8.83
-        s += S(f"M{xt:.1f} 36 L{xb:.1f} 109", "#FFFFFF", 1.6, ' stroke-opacity="0.45"')
-        s += S(f"M{xt + 2:.1f} 36 L{xb + 1.7:.1f} 109", "#000000", 1, ' stroke-opacity="0.07"')
-    s += S("M27 27.5 H101", "#FFFFFF", 2, ' stroke-opacity="0.9"')  # borda da boca
+def _amassado(cx, cy, raios, cores, centro=(0, 0), achatar=0.9, giro=0, linhas=False):
+    """Bola de papel amassado: um leque de facetas triangulares de tons
+    alternados a partir de um ponto interno, com contorno fino."""
+    n = len(raios)
+    vert = []
+    for k, r in enumerate(raios):
+        a = radians(giro + k * 360 / n)
+        vert.append((cx + r * cos(a), cy + r * sin(a) * achatar))
+    px, py = cx + centro[0], cy + centro[1]
+    s = ""
+    for k in range(n):
+        (x0, y0), (x1, y1) = vert[k], vert[(k + 1) % n]
+        d = f"M{_n(px)} {_n(py)} L{_n(x0)} {_n(y0)} L{_n(x1)} {_n(y1)} Z"
+        cor = cores[k % len(cores)]
+        s += (f'<path d="{d}" fill="{cor}" stroke="{cor}" stroke-width="0.6" '
+              'stroke-linejoin="round"/>')
+    contorno = "M" + " L".join(f"{_n(x)} {_n(y)}" for x, y in vert) + " Z"
+    if linhas:                                   # texto do jornal
+        r = min(raios) * 0.5
+        for i, dy in enumerate((-0.45, -0.15, 0.15, 0.45)):
+            y = cy + dy * r
+            x0, x1 = cx - r + (i % 2) * 1.5, cx + r - (i % 3)
+            s += S(f"M{_n(x0)} {_n(y + 0.8)} L{_n(x1)} {_n(y - 0.5)}",
+                   "#8E9198", 0.7, ' stroke-opacity="0.4"')
+    s += S(contorno, "#000000", 0.6, ' stroke-opacity="0.12" stroke-linejoin="round"')
     return s
+
+
+JORNAL = ("#F7F7F9", "#E2E3E7", "#FFFFFF", "#D3D5DA", "#EEEFF2", "#DADCE0")
+# Fotos amassadas: facetas coloridas da imagem intercaladas com o verso e a
+# borda brancos do papel fotográfico.
+FOTO_CORES = ("#F4F5F7", "#4A8FE0", "#3C7ACB", "#DFE1E5", "#5DB860", "#E8645A", "#FFFFFF", "#4CA352")
+FOTO_POR_DO_SOL = ("#6AA6EA", "#F3F4F6", "#EE9A4C", "#4F86D2", "#DDDEE2", "#F0B35E")
+
+
+def _papeis(dentro=False):
+    """Bolas de papel: as de dentro (dentro=True) só aparecem borradas,
+    através da parede fosca; as de cima enchem a boca e passam do aro."""
+    if dentro:
+        return (_amassado(46, 52, (15, 13, 16, 14, 15, 13, 14), JORNAL, (1, 1), giro=10)
+                + _amassado(76, 48, (14, 12, 15, 13, 14, 12), FOTO_POR_DO_SOL, (-1, 0), giro=-20)
+                + _amassado(60, 72, (16, 14, 15, 13, 16, 14, 15), JORNAL[3:] + JORNAL[:3], giro=5)
+                + _amassado(85, 76, (12, 10, 13, 11, 12), FOTO_CORES, giro=40)
+                + _amassado(40, 84, (12, 11, 13, 10, 12), JORNAL, giro=-30))
+    s = ""
+    s += _amassado(47, 22, (14, 12.5, 15, 13, 14.5, 12, 14, 13), JORNAL, (1.5, -1), giro=8, linhas=True)
+    s += _amassado(84, 21, (14, 12, 14.5, 13, 13.5, 12.5, 14), JORNAL[2:] + JORNAL[:2], (-1, -1), giro=-15,
+                   linhas=True)
+    s += _amassado(65, 16, (13, 11.5, 14, 12, 13, 11, 12.5, 12), FOTO_CORES, (-1, 1), giro=-12)
+    s += _amassado(37, 28, (11, 10, 11.5, 9.5, 10.5, 10), JORNAL, (1, -0.5), giro=-5)
+    s += _amassado(75, 27, (10.5, 9, 11, 9.5, 10, 9), FOTO_POR_DO_SOL, (0.5, 0.5), giro=20)
+    s += _amassado(56, 30, (10, 9, 10.5, 9.5, 10), JORNAL[1:] + JORNAL[:1], (0, 0.5), giro=30, linhas=True)
+    s += _amassado(92, 29, (8.5, 7.5, 9, 8), JORNAL, giro=15)
+    return s
+
+
+def lixeira(cheia=False):
+    cx, cy, rx, ry = LX_BOCA
+    boca = f'cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}"'
+    s = LX_DEFS
+    s += '<ellipse cx="64" cy="119.5" rx="31" ry="3.2" fill="#000000" fill-opacity="0.18"/>'  # contato
+    s += f'<ellipse {boca} fill="url(#lx-dentro)"/>'                  # interior pela boca
+    s += f'<path d="{LX_CORPO}" fill="#FFFFFF" fill-opacity="0.35"/>'  # parede de trás
+    if cheia:                                     # conteúdo visto (borrado) pela parede
+        s += (f'<g clip-path="url(#lx-corpo)"><g filter="url(#lx-fosco)" opacity="0.8">'
+              f'{_papeis(dentro=True)}{_papeis()}</g></g>')
+    # parede da frente, fosca e translúcida
+    s += f'<path d="{LX_CORPO}" fill="url(#lx-parede)"/>'
+    s += f'<path d="{LX_CORPO}" fill="url(#lx-luz)"/>'
+    s += S("M33.5 36 L37 110", "#FFFFFF", 3, ' stroke-opacity="0.75"')  # realce à esquerda
+    s += S("M96.5 34 L92.6 110", "#FFFFFF", 1.6, ' stroke-opacity="0.6"')
+    # contorno discreto para o cesto não sumir sobre fundo claro
+    s += f'<path d="{LX_CORPO}" fill="none" stroke="#7C808A" stroke-opacity="0.35" stroke-width="0.8"/>'
+    if cheia:                                     # papéis na boca e acima do aro
+        s += f'<g clip-path="url(#lx-boca)">{_papeis()}</g>'
+    # aro grosso da boca
+    s += (f'<ellipse cx="{cx}" cy="{cy}" rx="{rx - 1.6}" ry="{ry - 1.3}" fill="none" '
+          'stroke="#9A9EA8" stroke-opacity="0.4" stroke-width="1"/>')
+    s += f'<ellipse {boca} fill="none" stroke="#FFFFFF" stroke-width="3"/>'
+    s += (f'<ellipse cx="{cx}" cy="{cy}" rx="{rx + 1.5}" ry="{ry + 1.5}" fill="none" '
+          'stroke="#7C808A" stroke-opacity="0.35" stroke-width="0.7"/>')
+    # o conjunto (com os papéis acima do aro) cabe no quadro
+    return G(s, "translate(64 64) scale(0.92) translate(-64 -62)")
 
 
 # ── Desenhos próprios ─────────────────────────────────────────────────────
@@ -572,7 +657,7 @@ MIMETIPOS = {
 # A origem especial "os-release:LOGO" lê o LOGO= de /etc/os-release.
 APPS = [
     # Dock
-    ("Fedora", ["Dock"], "original", ["os-release:LOGO"], []),
+    # Fedora (LOGO= do os-release) fica de fora: usa o logo original do sistema, sem tile.
     ("Arquivos", ["Dock"], "desenho:arquivos", ["org.gnome.Nautilus.desktop"], []),
     ("Brave", ["Dock"], "simple:brave", ["brave-origin.desktop"], []),
     ("Spotify", ["Dock"], "original", ["spotify.desktop"], []),
